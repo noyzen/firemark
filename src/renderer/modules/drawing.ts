@@ -1,3 +1,4 @@
+
 import { AppState } from './state';
 
 export function getResizedDimensions(originalWidth: number, originalHeight: number, resizeSettings: any) {
@@ -36,11 +37,17 @@ export function getPositionCoords(pos: { x: number, y: number }, w: number, h: n
         // In free placement, pos is the normalized TOP-LEFT coordinate.
         return { x: pos.x * w, y: pos.y * h };
     }
-    // In grid mode, pos is an anchor point (0, 0.5, or 1 for each axis).
-    // We calculate the top-left coordinate (x,y) to place the element according to the anchor.
-    const x = pos.x * (w - elementWidth) - (elementWidth/2 * (pos.x * 2 - 1)) + (pos.x * -2 + 1) * padding ;
-    const y = pos.y * (h - elementHeight) - (elementHeight/2 * (pos.y * 2 - 1)) + (pos.y * -2 + 1) * padding;
-    return { x, y };
+
+    const calculateCoordinate = (pos: number, containerDim: number, elementDim: number, padding: number): number => {
+        if (pos === 0) return padding; // left/top
+        if (pos === 1) return containerDim - elementDim - padding; // right/bottom
+        return (containerDim - elementDim) / 2; // center
+    };
+
+    return {
+        x: calculateCoordinate(pos.x, w, elementWidth, padding),
+        y: calculateCoordinate(pos.y, h, elementHeight, padding)
+    };
 }
 
 export async function applyWatermarksToImage(image: { path: string }) {
@@ -177,26 +184,40 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
     
     const text = logoToUse ? ' ' : s.content;
     const metrics = ctx.measureText(text);
-    const textWidth = logoToUse ? (logoToUse.element.width * (s.fontSize / logoToUse.element.height)) : metrics.width;
-    const textHeight = s.fontSize;
+    const itemWidth = logoToUse ? (logoToUse.element.width * (s.fontSize / logoToUse.element.height)) : metrics.width;
+    const itemHeight = s.fontSize;
 
     const canvas = document.createElement('canvas');
     const tileCtx = canvas.getContext('2d')!;
     
-    const diag = Math.max(1, Math.sqrt(textWidth*textWidth + textHeight*textHeight) + s.spacing);
-    canvas.width = diag;
-    canvas.height = diag;
+    // Redesigned tile calculation for accurate bounding box
+    const angle = s.rotation * Math.PI / 180;
+    const absCos = Math.abs(Math.cos(angle));
+    const absSin = Math.abs(Math.sin(angle));
+
+    // Calculate the bounding box of the rotated item
+    const rotatedItemWidth = itemWidth * absCos + itemHeight * absSin;
+    const rotatedItemHeight = itemWidth * absSin + itemHeight * absCos;
+    
+    // Spacing can be negative for overlap, ensure canvas size is at least 1px.
+    const tileWidth = Math.max(1, rotatedItemWidth + s.spacing);
+    const tileHeight = Math.max(1, rotatedItemHeight + s.spacing);
+
+    canvas.width = tileWidth;
+    canvas.height = tileHeight;
     
     tileCtx.font = ctx.font;
     tileCtx.fillStyle = ctx.fillStyle;
     tileCtx.textAlign = 'center';
     tileCtx.textBaseline = 'middle';
     
-    tileCtx.translate(diag / 2, diag / 2);
-    tileCtx.rotate(s.rotation * Math.PI / 180);
+    // Move to the center of the tile canvas and rotate
+    tileCtx.translate(tileWidth / 2, tileHeight / 2);
+    tileCtx.rotate(angle);
     
     if (logoToUse) {
         const logo = logoToUse.element;
+        // The logo's height is defined by the 'fontSize' slider in the UI for logos
         const logoHeight = s.fontSize;
         const logoWidth = logo.width * (logoHeight / logo.height);
         tileCtx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
@@ -307,19 +328,58 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
     ctx.restore();
 }
 
+const cornerShapes: { [key: string]: string } = {
+    'classic': 'M0,40 L0,0 L40,0',
+    'curly': 'M0,50 Q25,25 50,0',
+    'tech': 'M0,0 L40,0 L40,5 L5,5 L5,40 L0,40 Z',
+    'slash': 'M0,0 L30,30',
+};
+
 export function drawFrameWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const s = AppState.settings.frame;
     ctx.save();
     const p = s.padding;
-    ctx.strokeStyle = s.color;
-    ctx.lineWidth = s.width;
-    if (s.style === 'dashed') ctx.setLineDash([15, 10]);
-    if (s.style === 'dotted') ctx.setLineDash([s.width, s.width * 1.5]);
 
-    ctx.strokeRect(p, p, width - p * 2, height - p * 2);
-    if (s.style === 'double') {
-        const p2 = p + s.width * 2;
-        ctx.strokeRect(p2, p2, width - p2 * 2, height - p2 * 2);
+    if (s.style.startsWith('corner-')) {
+        const shapeKey = s.style.replace('corner-', '');
+        const pathString = cornerShapes[shapeKey];
+        if (!pathString) { ctx.restore(); return; }
+        
+        const path = new Path2D(pathString);
+        const isFilled = pathString.endsWith('Z');
+
+        ctx.lineWidth = s.width;
+        ctx.strokeStyle = s.color;
+        ctx.fillStyle = s.color;
+
+        const drawInCorner = (translateX: number, translateY: number, rotation: number) => {
+            ctx.save();
+            ctx.translate(translateX, translateY);
+            ctx.rotate(rotation * Math.PI / 180);
+            if (isFilled) {
+                ctx.fill(path);
+            } else {
+                ctx.stroke(path);
+            }
+            ctx.restore();
+        };
+
+        drawInCorner(p, p, 0);
+        drawInCorner(width - p, p, 90);
+        drawInCorner(width - p, height - p, 180);
+        drawInCorner(p, height - p, 270);
+
+    } else {
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = s.width;
+        if (s.style === 'dashed') ctx.setLineDash([15, 10]);
+        if (s.style === 'dotted') ctx.setLineDash([s.width, s.width * 1.5]);
+
+        ctx.strokeRect(p, p, width - p * 2, height - p * 2);
+        if (s.style === 'double') {
+            const p2 = p + s.width * 2;
+            ctx.strokeRect(p2, p2, width - p2 * 2, height - p2 * 2);
+        }
     }
     ctx.restore();
 }

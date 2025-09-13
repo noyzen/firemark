@@ -1,4 +1,5 @@
-import { AppState, faIcons, emojis } from './state';
+
+import { AppState, emojis } from './state';
 import { updateSettingsAndPreview, applyPreset, openSavePresetModal, openDeletePresetModal, deletePreset, savePreset } from './settings';
 import { handleSelectLogo } from './file-handling';
 import { openPreview, drawPreview } from './preview';
@@ -32,7 +33,8 @@ export function addLayer(type: 'texts' | 'logos' | 'icons') {
             handleSelectLogo(newLayer.id);
             return;
         case 'icons':
-            Object.assign(newLayer, { icon: { class: 'fa-solid fa-copyright', unicode: '\u00a9', name: 'copyright' }, size: 64, color: '#FFFFFF', opacity: 0.7, padding: 20, position: { x: 0.5, y: 0.5 } });
+            const defaultIcon = { class: 'fa-solid fa-copyright', unicode: '\u00a9', name: 'copyright' };
+            Object.assign(newLayer, { icon: defaultIcon, size: 64, color: '#FFFFFF', opacity: 0.7, padding: 20, position: { x: 0.5, y: 0.5 } });
             break;
     }
     AppState.settings[type].push(newLayer);
@@ -293,11 +295,49 @@ export function toggleControlGroups() {
     (document.getElementById('resize-height') as HTMLElement).style.display = (mode === 'height' || mode === 'fit') ? 'block' : 'none';
 }
 export function populatePickers() {
-    const iconGrid = document.getElementById('icon-picker-grid')!; iconGrid.innerHTML = '';
-    faIcons.forEach(icon => {
+    const faIcons: { class: string; unicode: string; name: string }[] = [];
+    try {
+        const sheet = Array.from(document.styleSheets).find(s => s.href && s.href.includes('all.min.css'));
+        if (sheet) {
+            const rules = Array.from(sheet.cssRules);
+            const iconRegex = /\.fa-([a-zA-Z0-9-]+)::before/;
+            const classPrefixRegex = /(fa[brs])/;
+
+            for (const rule of rules) {
+                if (rule instanceof CSSStyleRule) {
+                    const match = rule.selectorText.match(iconRegex);
+                    if (match && rule.style.fontFamily.includes('Font Awesome')) {
+                        const name = match[1];
+                        const content = rule.style.getPropertyValue('content');
+                        if (content && content !== 'normal') {
+                            const prefixMatch = rule.selectorText.match(classPrefixRegex);
+                            const prefix = prefixMatch ? prefixMatch[1] : 'fas';
+                            const styleMap: { [key: string]: string } = { 'fas': 'solid', 'far': 'regular', 'fab': 'brands' };
+                            
+                            faIcons.push({
+                                class: `fa-${styleMap[prefix]} fa-${name}`,
+                                unicode: JSON.parse(content),
+                                name: name
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Could not parse Font Awesome stylesheet. Icon picker may be incomplete.", e);
+    }
+    
+    const uniqueIcons = Array.from(new Map(faIcons.map(item => [item.class, item])).values())
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const iconGrid = document.getElementById('icon-picker-grid')!; 
+    iconGrid.innerHTML = '';
+    uniqueIcons.forEach(icon => {
         const btn = document.createElement('button');
         btn.innerHTML = `<i class="${icon.class}"></i>`;
         btn.dataset.name = icon.name;
+        btn.title = icon.name;
         btn.addEventListener('click', () => {
             if (AppState.activeLayer?.type === 'icons') {
                 const layer = AppState.settings.icons.find((l: { id: number; }) => l.id === AppState.activeLayer!.id);
