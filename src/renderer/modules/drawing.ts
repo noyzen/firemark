@@ -1,4 +1,3 @@
-
 import { AppState } from './state';
 
 export function getResizedDimensions(originalWidth: number, originalHeight: number, resizeSettings: any) {
@@ -359,10 +358,7 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
 const cornerShapes: { [key: string]: string } = {
     'photo': 'M0,60 L60,0 L0,0 Z',
     'classic': 'M0,0 L40,0 L40,5 L5,5 L5,40 L0,40 Z',
-    'engraved': 'M0,30 L30,0 M5,30 L30,5 M10,30 L30,10',
     'tech': 'M40,0 L0,0 L0,40 M40,10 L10,10 L10,40',
-    'vintage': 'M0,50 A50,50 0 0 1 50,0 M5,45 A40,40 0 0 1 45,5',
-    'ornate': 'M0,60 C40,20 40,20 60,0 M0,50 C30,10 50,10 60,20',
     'slash': 'M0,5 L5,0 M0,20 L20,0 M0,35 L35,0',
 };
 
