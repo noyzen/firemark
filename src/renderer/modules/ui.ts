@@ -298,10 +298,10 @@ export async function populatePickers() {
     const faIcons: { class: string; unicode: string; name: string }[] = [];
     try {
         const response = await fetch('../../fonts/all.min.css');
-        if (!response.ok) throw new Error('Failed to load Font Awesome CSS');
+        if (!response.ok) throw new Error(`Failed to load Font Awesome CSS: ${response.statusText}`);
         const cssText = await response.text();
 
-        const ruleRegex = /([^{}]+)\s*\{\s*content:\s*"\\([a-fA-F0-9]+)"[^}]*}/g;
+        const ruleRegex = /([^{}]+?)\s*\{\s*content:\s*"\\([a-fA-F0-9]+)"/g;
         let match;
         while ((match = ruleRegex.exec(cssText)) !== null) {
             const selectors = match[1];
@@ -311,14 +311,24 @@ export async function populatePickers() {
 
             const individualSelectors = selectors.split(',');
             for (const selector of individualSelectors) {
-                const iconNameMatch = selector.match(/\.fa-([a-zA-Z0-9-]+)/);
-                if (iconNameMatch) {
-                    const name = iconNameMatch[1];
-                    let style = 'solid';
-                    if (selector.includes('.fa-brands')) style = 'brands';
-                    else if (selector.includes('.fa-regular')) style = 'regular';
-                    
-                    faIcons.push({ class: `fa-${style} fa-${name}`, unicode, name });
+                const trimmedSelector = selector.trim();
+                if (!trimmedSelector.startsWith('.fa-')) continue;
+
+                const parts = trimmedSelector.split('.fa-');
+                const namePart = parts.pop();
+                if (!namePart) continue;
+
+                const name = namePart.split('::')[0].trim();
+                if (!name) continue;
+                
+                let style = 'solid';
+                if (trimmedSelector.includes('.fa-brands')) style = 'brands';
+                else if (trimmedSelector.includes('.fa-regular')) style = 'regular';
+                
+                const fullClassName = `fa-${style} fa-${name}`;
+                
+                if (!faIcons.some(i => i.class === fullClassName)) {
+                    faIcons.push({ class: fullClassName, unicode, name });
                 }
             }
         }
@@ -326,8 +336,7 @@ export async function populatePickers() {
         console.error("Could not parse Font Awesome stylesheet. Icon picker may be incomplete.", e);
     }
     
-    const uniqueIcons = Array.from(new Map(faIcons.map(item => [item.class, item])).values())
-        .sort((a, b) => a.name.localeCompare(b.name));
+    const uniqueIcons = faIcons.sort((a, b) => a.name.localeCompare(b.name));
 
     const iconGrid = document.getElementById('icon-picker-grid')!; 
     iconGrid.innerHTML = '';

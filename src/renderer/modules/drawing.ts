@@ -110,8 +110,25 @@ export function getWatermarkBBox(type: 'texts' | 'logos' | 'icons', layer: any, 
         const {x, y} = getPositionCoords(s.position, imgWidth, imgHeight, w, h, s.padding, s.freePlacement); return { x, y, w, h };
     }
     if(type === 'icons') {
-        const s = layer; const tempCtx = document.createElement('canvas').getContext('2d')!; tempCtx.font = `900 ${s.size}px "Font Awesome 6 Free"`; const metrics = tempCtx.measureText(s.icon.unicode);
-        const {x, y} = getPositionCoords(s.position, imgWidth, imgHeight, metrics.width, s.size, s.padding, s.freePlacement); return { x, y, w: metrics.width, h: s.size };
+        const s = layer; 
+        const tempCtx = document.createElement('canvas').getContext('2d')!;
+        
+        const iconClass = s.icon.class || '';
+        let fontFamily = '"Font Awesome 6 Free"';
+        let fontWeight = '900'; // solid by default
+
+        if (iconClass.includes('fa-brands')) {
+            fontFamily = '"Font Awesome 6 Brands"';
+            fontWeight = '400';
+        } else if (iconClass.includes('fa-regular')) {
+            fontWeight = '400';
+        }
+
+        tempCtx.font = `${fontWeight} ${s.size}px ${fontFamily}`;
+        const metrics = tempCtx.measureText(s.icon.unicode);
+        const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const {x, y} = getPositionCoords(s.position, imgWidth, imgHeight, metrics.width, textHeight, s.padding, s.freePlacement); 
+        return { x, y, w: metrics.width, h: textHeight };
     }
     return null;
 }
@@ -153,11 +170,25 @@ export function drawSingleLogoWatermark(ctx: CanvasRenderingContext2D, width: nu
 }
 
 export function drawSingleIconWatermark(ctx: CanvasRenderingContext2D, width: number, height: number, s: any) {
-    ctx.font = `900 ${s.size}px "Font Awesome 6 Free"`;
+    const iconClass = s.icon.class || '';
+    let fontFamily = '"Font Awesome 6 Free"';
+    let fontWeight = '900';
+
+    if (iconClass.includes('fa-brands')) {
+        fontFamily = '"Font Awesome 6 Brands"';
+        fontWeight = '400';
+    } else if (iconClass.includes('fa-regular')) {
+        fontWeight = '400';
+    }
+
+    ctx.font = `${fontWeight} ${s.size}px ${fontFamily}`;
     const metrics = ctx.measureText(s.icon.unicode);
     const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
     const { x, y } = getPositionCoords(s.position, width, height, metrics.width, textHeight, s.padding, s.freePlacement);
-    ctx.globalAlpha = s.opacity; ctx.fillStyle = s.color; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.globalAlpha = s.opacity;
+    ctx.fillStyle = s.color;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
     ctx.fillText(s.icon.unicode, x, y); ctx.globalAlpha = 1.0;
 }
 
