@@ -307,18 +307,17 @@ export async function populatePickers() {
             const selectors = match[1];
             const unicode = String.fromCharCode(parseInt(match[2], 16));
 
-            if (!selectors.includes('::before')) continue;
+            if (!selectors.includes(':before')) continue;
 
             const individualSelectors = selectors.split(',');
             for (const selector of individualSelectors) {
                 const trimmedSelector = selector.trim();
                 if (!trimmedSelector.startsWith('.fa-')) continue;
 
-                const parts = trimmedSelector.split('.fa-');
-                const namePart = parts.pop();
-                if (!namePart) continue;
+                const nameMatches = trimmedSelector.match(/fa-([^:,\s]+)/g);
+                if (!nameMatches || nameMatches.length === 0) continue;
 
-                const name = namePart.split('::')[0].trim();
+                const name = nameMatches[nameMatches.length - 1].replace('fa-', '');
                 if (!name) continue;
                 
                 let style = 'solid';
@@ -327,7 +326,7 @@ export async function populatePickers() {
                 
                 const fullClassName = `fa-${style} fa-${name}`;
                 
-                if (!faIcons.some(i => i.class === fullClassName)) {
+                if (!faIcons.some(i => i.name === name && i.class === fullClassName)) {
                     faIcons.push({ class: fullClassName, unicode, name });
                 }
             }
