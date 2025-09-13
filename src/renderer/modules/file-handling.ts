@@ -4,16 +4,18 @@ import { applyWatermarksToImage } from './drawing';
 import { updateSettingsAndPreview } from './settings';
 
 function resetHeaderState() {
-    const headerActions = document.getElementById('header-actions')!;
-    const processingStatus = document.getElementById('processing-status')!;
+    const headerActions = document.getElementById('header-actions');
+    const processingStatus = document.getElementById('processing-status');
     const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
+
+    if (!headerActions || !processingStatus || !startBtn) return;
 
     headerActions.classList.remove('hidden');
     processingStatus.classList.add('hidden');
     
     startBtn.querySelector('.btn-text')!.textContent = 'Start Watermarking';
     startBtn.querySelector('.btn-spinner')!.classList.add('hidden');
-    updateStartButtonState();
+    startBtn.disabled = AppState.images.length === 0;
 }
 
 export async function handleDrop(e: DragEvent) {
@@ -80,13 +82,16 @@ export async function processImages() {
         if (dir) {
             AppState.outputDir = dir;
             document.getElementById('output-dir-path')!.textContent = dir;
-            updateStartButtonState();
         } else {
             return; // Abort if user cancels directory selection
         }
     }
+    
+    updateStartButtonState(); // Re-check if we can proceed
 
     const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
+    if (startBtn.disabled) return;
+
     const headerActions = document.getElementById('header-actions')!;
     const processingStatus = document.getElementById('processing-status')!;
     const progressContainer = document.getElementById('progress-container')!;
@@ -95,10 +100,14 @@ export async function processImages() {
     const progressBarInner = document.getElementById('progress-bar-inner')!;
     
     startBtn.disabled = true;
+    startBtn.querySelector('.btn-text')!.textContent = 'Processing...';
+    startBtn.querySelector('.btn-spinner')!.classList.remove('hidden');
+
     headerActions.classList.add('hidden');
     processingStatus.classList.remove('hidden');
     progressContainer.classList.remove('hidden');
     completionContainer.classList.add('hidden');
+    progressBarInner.style.width = '0%';
     
     const total = AppState.images.length;
     for (let i = 0; i < total; i++) {
@@ -116,4 +125,9 @@ export async function processImages() {
     completionContainer.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--success);"></i><span>Processing complete!</span><button id="open-folder-btn" class="button-secondary">Open Output Folder</button>`;
     completionContainer.classList.remove('hidden');
     document.getElementById('open-folder-btn')!.addEventListener('click', () => window.api.openFolder(AppState.outputDir!));
+
+    // Reset button state but leave completion message visible
+    startBtn.disabled = false;
+    startBtn.querySelector('.btn-text')!.textContent = 'Start Watermarking';
+    startBtn.querySelector('.btn-spinner')!.classList.add('hidden');
 }

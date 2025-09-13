@@ -74,7 +74,7 @@ function setupEventListeners() {
         if (target.matches('input, select, textarea')) {
             updateSettingsAndPreview();
         }
-        if (e.type === 'change' && target.matches('.toggle-switch input')) {
+        if (e.type === 'change' && target.matches('select, .toggle-switch input')) {
             toggleControlGroups();
         }
     };
