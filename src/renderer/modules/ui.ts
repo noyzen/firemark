@@ -138,21 +138,24 @@ export function setupCollapsibleGroups() {
 
         const setMaxHeight = () => {
             if (header.classList.contains('active')) {
-                // When active, set max-height to its scrollHeight to expand it.
                 groupBody.style.maxHeight = groupBody.scrollHeight + 'px';
             } else {
-                // When not active, collapse it.
-                groupBody.style.maxHeight = '0';
+                groupBody.style.maxHeight = '0px';
             }
         };
+
+        // Set initial state. For active panels, wait for the next frame to ensure
+        // scrollHeight is calculated correctly after the initial render.
+        if (header.classList.contains('active')) {
+            requestAnimationFrame(setMaxHeight);
+        } else {
+            groupBody.style.maxHeight = '0px';
+        }
         
         header.addEventListener('click', () => {
             header.classList.toggle('active');
             setMaxHeight();
         });
-
-        // Set initial state for all panels on load
-        setMaxHeight();
     });
 }
 

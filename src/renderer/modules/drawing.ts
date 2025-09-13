@@ -65,7 +65,6 @@ export function applyWatermarksToImage(image: { path: string }) {
 }
 
 // --- Specific Watermark Drawing Functions ---
-// FIX: Export function to allow it to be used in other modules.
 export function drawTextWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const s = getAppState().settings.text;
     const lines = String(s.content).split('\n');
@@ -74,7 +73,7 @@ export function drawTextWatermark(ctx: CanvasRenderingContext2D, width: number, 
     const lineHeight = s.fontSize * s.lineHeight;
     const metrics = lines.map(line => ctx.measureText(line));
     const maxTextWidth = Math.max(...metrics.map(m => m.width));
-    const totalTextHeight = (lines.length -1) * lineHeight + s.fontSize;
+    const totalTextHeight = lines.length * lineHeight;
     
     let { x, y } = getPositionCoords(s.position, width, height, maxTextWidth, totalTextHeight, s.padding);
 
@@ -121,7 +120,6 @@ export function drawTextWatermark(ctx: CanvasRenderingContext2D, width: number, 
     ctx.shadowOffsetY = 0;
 }
 
-// FIX: Export function to allow it to be used in other modules.
 export function drawLogoWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const AppState = getAppState();
     const s = AppState.settings.logo;
@@ -134,7 +132,6 @@ export function drawLogoWatermark(ctx: CanvasRenderingContext2D, width: number, 
     ctx.globalAlpha = 1.0;
 }
 
-// FIX: Export function to allow it to be used in other modules.
 export function drawIconWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const AppState = getAppState();
     const s = AppState.settings.icon;
@@ -149,7 +146,6 @@ export function drawIconWatermark(ctx: CanvasRenderingContext2D, width: number, 
     ctx.globalAlpha = 1.0;
 }
 
-// FIX: Export function to allow it to be used in other modules.
 export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const AppState = getAppState();
     const s = AppState.settings.tile;
@@ -187,7 +183,6 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
     ctx.globalAlpha = 1.0;
 }
 
-// FIX: Export function to allow it to be used in other modules.
 export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const s = getAppState().settings.pattern;
     ctx.globalAlpha = s.opacity;
@@ -231,7 +226,6 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
     ctx.globalAlpha = 1.0;
 }
 
-// FIX: Export function to allow it to be used in other modules.
 export function drawFrameWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const s = getAppState().settings.frame;
     const p = s.padding;
