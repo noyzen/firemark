@@ -319,6 +319,14 @@ input[type=range]:hover::-webkit-slider-thumb {
   border-color: var(--accent); 
   box-shadow: 0 0 5px var(--accent); 
 }
+.recenter-container {
+    margin-top: -4px;
+}
+.recenter-container button {
+    width: 100%;
+    padding: 6px;
+    font-size: 13px;
+}
 
 /* --- Layer Manager --- */
 .layer-manager {
@@ -404,10 +412,13 @@ input[type=range]:hover::-webkit-slider-thumb {
   pointer-events: none;
 }
 .controls-wrapper.free-placement-active .position-grid,
-.controls-wrapper.free-placement-active .position-grid + .range-with-value,
+.controls-wrapper.free-placement-active .range-with-value:has(> #text-padding),
+.controls-wrapper.free-placement-active .range-with-value:has(> #logo-padding),
+.controls-wrapper.free-placement-active .range-with-value:has(> #icon-padding),
 .controls-wrapper.free-placement-active label[for$="-padding"] {
   display: none;
 }
+
 
 /* --- Misc Controls --- */
 .presets-group { 

@@ -113,7 +113,7 @@ function handlePreviewMouseDown(e: MouseEvent) {
             if(!AppState.settings[type]) continue;
             for (let i = AppState.settings[type].length - 1; i >= 0; i--) {
                 const layer = AppState.settings[type][i];
-                if (!layer.enabled) continue;
+                if (!layer.enabled || !layer.freePlacement) continue;
                 
                 const bbox = getWatermarkBBox(type, layer, previewCanvas.width, previewCanvas.height);
                 if (bbox && mouse.x >= bbox.x && mouse.x <= bbox.x + bbox.w && mouse.y >= bbox.y && mouse.y <= bbox.y + bbox.h) {
@@ -132,33 +132,23 @@ function handlePreviewMouseMove(e: MouseEvent) {
     if (previewState.isDragging) {
         const { type, id } = previewState.isDragging;
         const layer = AppState.settings[type].find((l: { id: any; }) => l.id === id);
-        if (!layer) return;
+        if (!layer || !layer.freePlacement) return;
 
         const mouse = getMousePosOnCanvas(e);
         const { width, height } = previewCanvas;
+        const bbox = getWatermarkBBox(type, layer, width, height)!;
+        if (!bbox) return;
 
-        if (layer.freePlacement) {
-            const bbox = getWatermarkBBox(type, layer, width, height)!;
-            if (!bbox) return;
+        // newX/Y is the desired top-left corner of the bbox
+        const newX = mouse.x - previewState.dragOffset.x;
+        const newY = mouse.y - previewState.dragOffset.y;
 
-            // newX/Y is the desired top-left corner of the bbox
-            const newX = mouse.x - previewState.dragOffset.x;
-            const newY = mouse.y - previewState.dragOffset.y;
+        // Clamp the position to be within the canvas boundaries
+        const clampedX = Math.max(0, Math.min(newX, width - bbox.w));
+        const clampedY = Math.max(0, Math.min(newY, height - bbox.h));
 
-            // Clamp the position to be within the canvas boundaries
-            const clampedX = Math.max(0, Math.min(newX, width - bbox.w));
-            const clampedY = Math.max(0, Math.min(newY, height - bbox.h));
-
-            layer.position.x = clampedX / width;
-            layer.position.y = clampedY / height;
-
-        } else { // Snapping logic
-             const xPercent = mouse.x / width;
-             const yPercent = mouse.y / height;
-             const snapPoints = [0, 0.5, 1];
-             layer.position.x = snapPoints.reduce((prev, curr) => Math.abs(curr - xPercent) < Math.abs(prev - xPercent) ? curr : prev);
-             layer.position.y = snapPoints.reduce((prev, curr) => Math.abs(curr - yPercent) < Math.abs(prev - yPercent) ? curr : prev);
-        }
+        layer.position.x = clampedX / width;
+        layer.position.y = clampedY / height;
         
         updateActiveLayerControls();
         drawPreview();

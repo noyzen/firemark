@@ -114,6 +114,7 @@ export function updateActiveLayerControls() {
     if (!layer) return;
 
     const setValue = (elId: string, value: any, type = 'value') => { if (value === undefined) return; const el = document.getElementById(elId) as any; if (el) el[type] = value; };
+    // Fix: The `setChecked` helper function was incorrectly passing the numeric layer `id` instead of the string `elId`.
     const setChecked = (elId: string, value: boolean) => setValue(elId, value, 'checked');
     const setActive = (elId: string, value: boolean) => document.getElementById(elId)?.classList.toggle('active', !!value);
     const setPosition = (containerId: string, pos: { x: number, y: number }) => {
@@ -136,6 +137,7 @@ export function updateActiveLayerControls() {
         if(s.shadow) { setChecked('text-shadow-enable', s.shadow.enabled); setValue('text-shadow-color', s.shadow.color); setValue('text-shadow-blur', s.shadow.blur); }
         if(s.position) setPosition('text-position', s.position);
         document.getElementById('text-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
+        document.getElementById('text-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     } else if (type === 'logos') {
         const s = layer;
         setValue('logo-size', s.size); setValue('logo-opacity', s.opacity); setValue('logo-padding', s.padding); setChecked('logo-free-placement', s.freePlacement);
@@ -144,6 +146,7 @@ export function updateActiveLayerControls() {
         document.getElementById('logo-preview-container')!.classList.remove('hidden');
         if(s.position) setPosition('logo-position', s.position);
         document.getElementById('logo-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
+        document.getElementById('logo-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     } else if (type === 'icons') {
         const s = layer;
         const display = document.getElementById('icon-display')!;
@@ -151,6 +154,7 @@ export function updateActiveLayerControls() {
         setValue('icon-size', s.size); setValue('icon-color', s.color); setValue('icon-opacity', s.opacity); setValue('icon-padding', s.padding); setChecked('icon-free-placement', s.freePlacement);
         if(s.position) setPosition('icon-position', s.position);
         document.getElementById('icon-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
+        document.getElementById('icon-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     }
 
     toggleControlGroups();
@@ -318,6 +322,17 @@ export function updateCollapsibleIndicators() {
     updateIndicator('frame-group', AppState.settings.frame?.enabled);
 }
 
+function recenterActiveLayer() {
+    if (!AppState.activeLayer) return;
+    const { type, id } = AppState.activeLayer;
+    const layer = AppState.settings[type]?.find((l: { id: any; }) => l.id === id);
+    if (layer && layer.freePlacement) {
+        // Set position to the center (top-left will be at center)
+        layer.position = { x: 0.5, y: 0.5 };
+        updateSettingsAndPreview();
+    }
+}
+
 export const UIEvents = {
     addLayer,
     applyPreset,
@@ -326,4 +341,5 @@ export const UIEvents = {
     openDeletePresetModal,
     deletePreset,
     filterIcons,
+    recenterActiveLayer,
 };

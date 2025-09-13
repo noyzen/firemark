@@ -63,6 +63,9 @@ function setupEventListeners() {
     document.getElementById('add-text-btn')!.addEventListener('click', () => UIEvents.addLayer('texts'));
     document.getElementById('add-logo-btn')!.addEventListener('click', () => UIEvents.addLayer('logos'));
     document.getElementById('add-icon-btn')!.addEventListener('click', () => UIEvents.addLayer('icons'));
+    document.getElementById('text-recenter-btn')!.addEventListener('click', () => UIEvents.recenterActiveLayer());
+    document.getElementById('logo-recenter-btn')!.addEventListener('click', () => UIEvents.recenterActiveLayer());
+    document.getElementById('icon-recenter-btn')!.addEventListener('click', () => UIEvents.recenterActiveLayer());
 
     document.querySelectorAll('.sidebar-content input, .sidebar-content select, .sidebar-content textarea').forEach(el => {
         el.addEventListener('input', updateSettingsAndPreview);

@@ -85,6 +85,7 @@ function applySettingsToUI(s: any) {
 
 export function updateSettingsAndPreview() {
     updateSettings();
+    updateActiveLayerControls();
     drawPreview();
     updateCollapsibleIndicators();
     clearTimeout(settingsUpdateTimeout);
