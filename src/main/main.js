@@ -1,7 +1,10 @@
+
 const { app, BrowserWindow, Menu, nativeTheme, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const WindowState = require('electron-window-state');
+// FIX: Import GoogleGenAI and Modality for the AI Ghosting feature.
+const { GoogleGenAI, Modality } = require('@google/genai');
 
 // Ensure single instance
 const gotTheLock = app.requestSingleInstanceLock();
@@ -101,6 +104,52 @@ ipcMain.handle('file:save', async (event, { dataUrl, directory, originalName, fo
         return { success: true, path: outputPath };
     } catch (error) {
         console.error('Failed to save file:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+// FIX: Add IPC handler for the AI Ghosting feature.
+ipcMain.handle('app:ghost-watermark', async (event, { dataUrl, subtlety }) => {
+    try {
+        const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+        const mimeType = dataUrl.substring(dataUrl.indexOf(':') + 1, dataUrl.indexOf(';'));
+        const base64ImageData = dataUrl.split(',')[1];
+        
+        const imagePart = {
+            inlineData: {
+                data: base64ImageData,
+                mimeType: mimeType,
+            },
+        };
+
+        const textPart = {
+            text: `Make the watermark on this image more subtle. The subtlety level should be around ${subtlety} out of 100. A higher number means more subtle.`,
+        };
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image-preview',
+            contents: {
+                parts: [imagePart, textPart],
+            },
+            config: {
+                responseModalities: [Modality.IMAGE, Modality.TEXT],
+            },
+        });
+        
+        if (response.candidates && response.candidates.length > 0) {
+            for (const part of response.candidates[0].content.parts) {
+                if (part.inlineData) {
+                    const base64ImageBytes = part.inlineData.data;
+                    const newMimeType = part.inlineData.mimeType;
+                    const new_dataUrl = `data:${newMimeType};base64,${base64ImageBytes}`;
+                    return { success: true, dataUrl: new_dataUrl };
+                }
+            }
+        }
+
+        return { success: false, error: 'No image returned from AI.' };
+    } catch (error) {
+        console.error('AI Ghosting failed:', error);
         return { success: false, error: error.message };
     }
 });

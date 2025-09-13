@@ -45,12 +45,7 @@
 .group-header .collapse-icon { 
   transition: transform 0.2s ease-in-out; 
 }
-.group-header.active + .group-body {
-  max-height: 1000px; /* Arbitrary large value */
-  padding: 16px;
-  opacity: 1;
-  visibility: visible;
-}
+
 .group-header:not(.active) .collapse-icon { 
   transform: rotate(-90deg); 
 }
@@ -59,13 +54,21 @@
   display: grid; 
   gap: 12px; 
   grid-template-columns: 1fr; 
-  transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.2s;
+  transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.3s ease-in-out;
   max-height: 0;
-  padding: 0 16px;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 0;
+  padding-bottom: 0;
   opacity: 0;
-  visibility: hidden;
   overflow: hidden;
 }
+.group-header.active + .group-body {
+  opacity: 1;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
 .control-group label { 
   font-size: 13px; 
   font-weight: 500;
