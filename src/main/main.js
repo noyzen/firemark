@@ -1,9 +1,9 @@
 
-
 const { app, BrowserWindow, Menu, nativeTheme, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const WindowState = require('electron-window-state');
+const { exec } = require('child_process');
 
 // Ensure single instance
 const gotTheLock = app.requestSingleInstanceLock();
@@ -116,6 +116,46 @@ ipcMain.handle('app:ghost-watermark', (event, { dataUrl, subtlety }) => {
     console.error(`'ghostWatermark' feature is not implemented in the main process.`);
     // Return original dataUrl to avoid breaking the processing chain
     return { success: false, error: 'AI Ghosting not implemented.' };
+});
+
+ipcMain.handle('font:getList', () => {
+  return new Promise((resolve) => {
+    let command;
+    switch (process.platform) {
+      case 'win32':
+        command = 'powershell -noprofile -command "(New-Object System.Drawing.Text.InstalledFontCollection).Families.Name"';
+        break;
+      case 'linux':
+        command = 'fc-list : family';
+        break;
+      case 'darwin':
+        command = 'system_profiler SPFontsDataType | grep "Family:" | cut -d: -f2 | sort -u';
+        break;
+      default:
+        return resolve([]);
+    }
+
+    exec(command, { maxBuffer: 1024 * 1024 * 5 }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error getting system fonts: ${error.message}`);
+        return resolve([]); // Gracefully fail
+      }
+      if (stderr) {
+        console.warn(`Stderr while getting system fonts: ${stderr}`);
+      }
+      
+      const fonts = stdout.split('\n')
+        .map(font => {
+          if (process.platform === 'linux' && font.includes(',')) {
+            return font.split(',')[0].trim();
+          }
+          return font.trim();
+        })
+        .filter(font => font.length > 0 && !font.startsWith('.'));
+      
+      resolve(Array.from(new Set(fonts)).sort());
+    });
+  });
 });
 
 // --- Window Control Handlers ---

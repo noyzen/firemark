@@ -1,5 +1,4 @@
 
-
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('appInfo', {
@@ -22,4 +21,5 @@ contextBridge.exposeInMainWorld('api', {
   saveFile: ({ dataUrl, directory, originalName, format }) => ipcRenderer.invoke('file:save', { dataUrl, directory, originalName, format }),
   openFolder: (path) => ipcRenderer.invoke('app:open-folder', path),
   ghostWatermark: (args) => ipcRenderer.invoke('app:ghost-watermark', args),
+  getFonts: () => ipcRenderer.invoke('font:getList'),
 });

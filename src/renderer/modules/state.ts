@@ -14,6 +14,8 @@ declare global {
             saveFile: (args: { dataUrl: string; directory: string; originalName: string; format: string }) => Promise<{ success: boolean; path?: string; error?: string }>;
             openFolder: (path: string) => void;
             ghostWatermark: (args: { dataUrl: string, subtlety: number }) => Promise<{ success: boolean; dataUrl?: string, error?: string }>;
+            // Fix: Add getFonts to the api interface to match the preload script and fix TypeScript error.
+            getFonts: () => Promise<string[]>;
         };
     }
 }
