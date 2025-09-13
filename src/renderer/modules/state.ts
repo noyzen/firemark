@@ -54,8 +54,6 @@ export let previewState = {
     showWatermark: true 
 };
 
-export let settingsUpdateTimeout: number;
-
 // --- Constants ---
 export const faIcons = [
     { class: 'fa-solid fa-copyright', unicode: '\u00a9', name: 'copyright' }, { class: 'fa-solid fa-camera', unicode: '\uf030', name: 'camera' },
@@ -70,5 +68,4 @@ export const faIcons = [
     { class: 'fa-solid fa-crown', name: 'crown', unicode: '\uf521' }, { class: 'fa-solid fa-ghost', name: 'ghost', unicode: '\uf6e2' },
 ];
 export const emojis = ['©️', '®️', '™️', '❤️', '⭐️', '✅', '🔒', '📷', '🖼️', '✨', '🔥', '💧'];
-export const SETTINGS_KEY = 'firemark_last_settings';
 export const PRESETS_PREFIX = 'firemark_preset_';

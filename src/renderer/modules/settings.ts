@@ -1,8 +1,29 @@
-import { AppState, SETTINGS_KEY, PRESETS_PREFIX, settingsUpdateTimeout } from './state';
+import { AppState, PRESETS_PREFIX } from './state';
 import { drawPreview } from './preview';
 import { toggleControlGroups, setupRangeValueDisplays, renderAllLayerLists, updateActiveLayerControls, updateCollapsibleIndicators } from './ui';
 import { getWatermarkBBox } from './drawing';
 import { previewState } from './state';
+
+function getDefaultSettings() {
+    return {
+        texts: [],
+        logos: [],
+        icons: [],
+        textsEnabled: false,
+        logosEnabled: false,
+        iconsEnabled: false,
+        effectsEnabled: false,
+        tile: { enabled: false, useLogo: false, content: 'Protected', fontSize: 32, opacity: 0.15, rotation: -30, spacing: 150 },
+        pattern: { enabled: false, type: 'checker', color1: '#000000', color2: '#FFFFFF', opacity: 0.1, size: 20 },
+        frame: { enabled: false, style: 'single', color: '#FFFFFF', width: 5, padding: 10 },
+        effects: { brightness: 1, contrast: 1, grayscale: 0, blur: { enabled: false, radius: 0 }, noise: { enabled: false, amount: 0 }, sharpen: { enabled: false, amount: 0 } },
+        output: { format: 'png', quality: 0.9, resize: { mode: 'none', width: 1920, height: 1080 } },
+    };
+}
+
+export function initializeDefaultState() {
+    applySettingsToUI(JSON.parse(JSON.stringify(getDefaultSettings())));
+}
 
 export function updateSettings() {
     // Read layer enabled state directly from DOM first for ALL layers
@@ -131,36 +152,6 @@ export function updateSettingsAndPreview() {
     updateActiveLayerControls();
     drawPreview();
     updateCollapsibleIndicators();
-    clearTimeout(settingsUpdateTimeout);
-    (window as any).settingsUpdateTimeout = window.setTimeout(saveCurrentSettingsToLocalStorage, 300);
-}
-
-function saveCurrentSettingsToLocalStorage() {
-    if(Object.keys(AppState.settings).length > 0) {
-        const settingsToSave = JSON.parse(JSON.stringify(AppState.settings));
-        settingsToSave.logos?.forEach((l: { element: any; }) => delete l.element);
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsToSave));
-    }
-}
-
-export function loadLastSettings() {
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    if(savedSettings) {
-        try {
-            const settings = JSON.parse(savedSettings);
-            settings.logos?.forEach((logo: { path: string; element: HTMLImageElement; }) => {
-                const img = new Image();
-                img.src = logo.path;
-                logo.element = img;
-            });
-            applySettingsToUI(settings);
-        } catch (e) {
-            console.error("Failed to parse last settings", e);
-            updateSettings();
-        }
-    } else {
-        updateSettings();
-    }
 }
 
 export function openSavePresetModal() {

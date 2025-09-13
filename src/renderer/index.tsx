@@ -1,4 +1,4 @@
-import { loadLastSettings, loadPresets, updateSettingsAndPreview } from './modules/settings';
+import { initializeDefaultState, loadPresets, updateSettingsAndPreview } from './modules/settings';
 import { setupPreviewListeners } from './modules/preview';
 // Fix: Correctly import UIEvents from ui.ts and remove incorrect import from settings.ts
 import { setupCollapsibleGroups, setupRangeValueDisplays, toggleControlGroups, populatePickers, renderAllLayerLists, updateActiveLayerControls, handleGridClick, UIEvents, showGrid } from './modules/ui';
@@ -7,14 +7,12 @@ import { handleAddImages, handleClearImages, handleDrop, handleSelectOutputDir, 
 document.addEventListener('DOMContentLoaded', () => {
     setupWindowControls();
     setupEventListeners();
-    loadLastSettings();
+    initializeDefaultState();
     setupRangeValueDisplays();
     setupCollapsibleGroups();
     loadPresets();
     toggleControlGroups();
     populatePickers();
-    renderAllLayerLists();
-    updateActiveLayerControls();
 });
 
 function setupWindowControls() {
