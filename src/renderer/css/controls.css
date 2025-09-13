@@ -159,6 +159,17 @@ input[type="color"]::-webkit-color-swatch {
   border: none; 
   border-radius: 2px; 
 }
+select option {
+    background: var(--bg-light);
+    color: var(--fg-bright);
+    padding: 8px;
+}
+select optgroup {
+    color: var(--accent);
+    background: var(--bg-darker);
+    font-weight: 600;
+    font-style: normal;
+}
 
 /* --- Custom Select Dropdown --- */
 .custom-select {
@@ -171,6 +182,7 @@ input[type="color"]::-webkit-color-swatch {
     appearance: none;
     padding-right: 30px; /* Space for arrow */
     cursor: pointer;
+    background-image: none; /* remove default arrow on some systems */
 }
 .custom-select::after {
     content: '\f078'; /* fa-chevron-down */
@@ -434,6 +446,11 @@ input[type=range]:hover::-webkit-slider-thumb {
 }
 .presets-group #preset-delete-btn:hover { 
   color: var(--danger); 
+}
+
+#tile-text-options {
+  display: grid;
+  gap: 12px;
 }
 
 #output-dir-path {

@@ -228,7 +228,11 @@ export function setupCollapsibleGroups() {
         if (!body) return;
 
         header.addEventListener('click', (event) => {
-            if ((event.target as HTMLElement).closest('.header-controls')) return;
+            const target = event.target as HTMLElement;
+            // Allow the icon to toggle, but prevent other controls (like the switch) from toggling.
+            if (target.closest('.header-controls') && !target.classList.contains('collapse-icon')) {
+                return;
+            }
 
             header.classList.toggle('active');
 
@@ -276,7 +280,7 @@ export function toggleControlGroups() {
     document.getElementById('text-gradient-controls')!.classList.toggle('hidden', !isChecked('text-gradient-enable'));
     document.getElementById('text-stroke-controls')!.classList.toggle('hidden', !isChecked('text-stroke-enable'));
     document.getElementById('text-shadow-controls')!.classList.toggle('hidden', !isChecked('text-shadow-enable'));
-    document.getElementById('tile-text-options')!.style.display = isChecked('tile-use-logo') ? 'none' : 'grid';
+    document.getElementById('tile-text-options')!.classList.toggle('hidden', isChecked('tile-use-logo'));
     
     const format = (document.getElementById('output-format') as HTMLSelectElement).value;
     document.getElementById('quality-control')!.classList.toggle('hidden', format === 'png');

@@ -158,8 +158,8 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
     const s = AppState.settings.tile;
     ctx.save();
     ctx.globalAlpha = s.opacity;
-    ctx.font = `${s.fontSize}px Arial`;
-    ctx.fillStyle = '#fff'; // Assuming white text for tiles, can be customized
+    ctx.font = `${s.fontSize}px ${s.fontFamily || 'Arial'}`;
+    ctx.fillStyle = s.color || '#FFFFFF';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     

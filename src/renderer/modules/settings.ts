@@ -13,7 +13,7 @@ function getDefaultSettings() {
         logosEnabled: false,
         iconsEnabled: false,
         effectsEnabled: false,
-        tile: { enabled: false, useLogo: false, content: 'Protected', fontSize: 32, opacity: 0.15, rotation: -30, spacing: 150 },
+        tile: { enabled: false, useLogo: false, content: 'Protected', fontFamily: 'Arial', fontSize: 32, color: '#FFFFFF', opacity: 0.15, rotation: -30, spacing: 150 },
         pattern: { enabled: false, type: 'checker', color1: '#000000', color2: '#FFFFFF', opacity: 0.1, size: 20 },
         frame: { enabled: false, style: 'single', color: '#FFFFFF', width: 5, padding: 10 },
         effects: { brightness: 1, contrast: 1, grayscale: 0, blur: { enabled: false, radius: 0 }, noise: { enabled: false, amount: 0 }, sharpen: { enabled: false, amount: 0 } },
@@ -103,7 +103,7 @@ export function updateSettings() {
     AppState.settings.iconsEnabled = isChecked('icon-group-enable');
     AppState.settings.effectsEnabled = isChecked('effects-group-enable');
 
-    AppState.settings.tile = { enabled: isChecked('tile-enable'), useLogo: isChecked('tile-use-logo'), content: getValue('tile-text-content'), fontSize: getValue('tile-font-size', true), opacity: getValue('tile-opacity', false, true), rotation: getValue('tile-rotation', true), spacing: getValue('tile-spacing', true) };
+    AppState.settings.tile = { enabled: isChecked('tile-enable'), useLogo: isChecked('tile-use-logo'), content: getValue('tile-text-content'), fontFamily: getValue('tile-font-family'), fontSize: getValue('tile-font-size', true), color: getValue('tile-color'), opacity: getValue('tile-opacity', false, true), rotation: getValue('tile-rotation', true), spacing: getValue('tile-spacing', true) };
     AppState.settings.pattern = { enabled: isChecked('pattern-enable'), type: getValue('pattern-type'), color1: getValue('pattern-color1'), color2: getValue('pattern-color2'), opacity: getValue('pattern-opacity', false, true), size: getValue('pattern-size', true) };
     AppState.settings.frame = { enabled: isChecked('frame-enable'), style: getValue('frame-style'), color: getValue('frame-color'), width: getValue('frame-width', true), padding: getValue('frame-padding', true) };
     AppState.settings.effects = { brightness: getValue('effect-brightness', false, true), contrast: getValue('effect-contrast', false, true), grayscale: getValue('effect-grayscale', false, true), blur: { enabled: isChecked('effect-blur-enable'), radius: getValue('effect-blur-radius', false, true) }, noise: { enabled: isChecked('effect-noise-enable'), amount: getValue('effect-noise-amount', true) }, sharpen: { enabled: isChecked('effect-sharpen-enable'), amount: getValue('effect-sharpen-amount', false, true) } };
@@ -131,7 +131,7 @@ function applySettingsToUI(s: any) {
     setChecked('icon-group-enable', s.iconsEnabled ?? true);
     setChecked('effects-group-enable', s.effectsEnabled ?? true);
 
-    if (s.tile) { setChecked('tile-enable', s.tile.enabled); setChecked('tile-use-logo', s.tile.useLogo); setValue('tile-text-content', s.tile.content); setValue('tile-font-size', s.tile.fontSize); setValue('tile-opacity', s.tile.opacity); setValue('tile-rotation', s.tile.rotation); setValue('tile-spacing', s.tile.spacing); }
+    if (s.tile) { setChecked('tile-enable', s.tile.enabled); setChecked('tile-use-logo', s.tile.useLogo); setValue('tile-text-content', s.tile.content); setValue('tile-font-family', s.tile.fontFamily); setValue('tile-font-size', s.tile.fontSize); setValue('tile-color', s.tile.color); setValue('tile-opacity', s.tile.opacity); setValue('tile-rotation', s.tile.rotation); setValue('tile-spacing', s.tile.spacing); }
     if (s.pattern) { setChecked('pattern-enable', s.pattern.enabled); setValue('pattern-type', s.pattern.type); setValue('pattern-color1', s.pattern.color1); setValue('pattern-color2', s.pattern.color2); setValue('pattern-opacity', s.pattern.opacity); setValue('pattern-size', s.pattern.size); }
     if (s.frame) { setChecked('frame-enable', s.frame.enabled); setValue('frame-style', s.frame.style); setValue('frame-color', s.frame.color); setValue('frame-width', s.frame.width); setValue('frame-padding', s.frame.padding); }
     if (s.effects) {
