@@ -357,14 +357,13 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
 }
 
 const cornerShapes: { [key: string]: string } = {
-    'classic': 'M0,40 L0,0 L40,0',
-    'curly': 'M0,50 C10,25 25,10 50,0',
-    'tech': 'M0,0 L40,0 L40,5 L5,5 L5,40 L0,40 Z',
-    'slash': 'M0,0 L30,30',
-    'ornate': 'M0,60 C30,20 40,30 60,0 M0,45 C20,15 25,20 45,0 M0,30 C10,5 10,10 30,0',
-    'floral': 'M0,100 C50,50 50,50 100,0 M0,80 C40,40 40,40 80,0 M20,100 C60,60 60,60 100,20',
-    'victorian': 'M0,0 L50,0 C50,20 40,25 30,25 C20,25 20,40 0,50 Z',
-    'geometric': 'M0,50 L50,0 L50,10 L10,50 L0,50 Z M0,30 L30,0 L30,10 L10,30 L0,30 Z',
+    'photo': 'M0,60 L60,0 L0,0 Z',
+    'classic': 'M0,0 L40,0 L40,5 L5,5 L5,40 L0,40 Z',
+    'engraved': 'M0,30 L30,0 M5,30 L30,5 M10,30 L30,10',
+    'tech': 'M40,0 L0,0 L0,40 M40,10 L10,10 L10,40',
+    'vintage': 'M0,50 A50,50 0 0 1 50,0 M5,45 A40,40 0 0 1 45,5',
+    'ornate': 'M0,60 C40,20 40,20 60,0 M0,50 C30,10 50,10 60,20',
+    'slash': 'M0,5 L5,0 M0,20 L20,0 M0,35 L35,0',
 };
 
 export function drawFrameWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
@@ -403,14 +402,29 @@ export function drawFrameWatermark(ctx: CanvasRenderingContext2D, width: number,
 
     } else {
         ctx.strokeStyle = s.color;
-        ctx.lineWidth = s.width;
+        
         if (s.style === 'dashed') ctx.setLineDash([15, 10]);
-        if (s.style === 'dotted') ctx.setLineDash([s.width, s.width * 1.5]);
+        else if (s.style === 'dotted') ctx.setLineDash([s.width, s.width * 1.5]);
+        else ctx.setLineDash([]);
 
-        ctx.strokeRect(p, p, width - p * 2, height - p * 2);
-        if (s.style === 'double') {
-            const p2 = p + s.width * 2;
+        if (s.style === 'inset') {
+            const thin = Math.max(1, s.width / 3);
+            const thick = s.width - thin;
+            const gap = thin;
+
+            ctx.lineWidth = thin;
+            ctx.strokeRect(p, p, width - p * 2, height - p * 2);
+
+            ctx.lineWidth = thick;
+            const p2 = p + thin + gap;
             ctx.strokeRect(p2, p2, width - p2 * 2, height - p2 * 2);
+        } else {
+            ctx.lineWidth = s.width;
+            ctx.strokeRect(p, p, width - p * 2, height - p * 2);
+            if (s.style === 'double') {
+                const p2 = p + s.width * 2;
+                ctx.strokeRect(p2, p2, width - p2 * 2, height - p2 * 2);
+            }
         }
     }
     ctx.restore();
