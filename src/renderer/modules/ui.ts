@@ -1,10 +1,27 @@
 import { AppState, faIcons, emojis } from './state';
 import { updateSettingsAndPreview, applyPreset, openSavePresetModal, openDeletePresetModal, deletePreset, savePreset } from './settings';
 import { handleSelectLogo } from './file-handling';
-import { openPreview } from './preview';
+import { openPreview, drawPreview } from './preview';
+
+const gridView = document.getElementById('grid-view')!;
+const previewView = document.getElementById('preview-view')!;
+
+export function showPreview() {
+    gridView.classList.add('hidden');
+    previewView.classList.remove('hidden');
+    drawPreview();
+}
+
+export function showGrid() {
+    previewView.classList.add('hidden');
+    gridView.classList.remove('hidden');
+    AppState.activeLayer = null;
+    updateActiveLayerControls();
+}
+
 
 export function addLayer(type: 'texts' | 'logos' | 'icons') {
-    const newLayer: any = { id: Date.now(), enabled: true };
+    const newLayer: any = { id: Date.now(), enabled: true, freePlacement: false };
     switch (type) {
         case 'texts':
             Object.assign(newLayer, { content: 'New Text', fontFamily: 'Arial', fontSize: 48, bold: false, italic: false, align: 'left', lineHeight: 1.2, color: '#FFFFFF', opacity: 0.7, padding: 20, gradient: { enabled: false, color: '#4a90e2', direction: 'vertical' }, stroke: { enabled: false, color: '#000000', width: 2 }, shadow: { enabled: false, color: '#000000', blur: 5 }, position: { x: 0.5, y: 0.5 } });
@@ -103,31 +120,37 @@ export function updateActiveLayerControls() {
         document.querySelectorAll(`#${containerId} button`).forEach(b => b.classList.remove('active'));
         const yStr = pos.y < 0.25 ? 'top' : pos.y > 0.75 ? 'bottom' : 'center';
         const xStr = pos.x < 0.25 ? 'left' : pos.x > 0.75 ? 'right' : 'center';
-        const posStr = `${yStr}-${xStr === 'center' && yStr === 'center' ? 'center' : xStr}`;
-        document.querySelector(`#${containerId} button[data-position="${posStr}"]`)?.classList.add('active');
+        let posStr = `${yStr}-${xStr}`;
+        if(posStr === 'center-center') posStr = 'center';
+        
+        const btn = document.querySelector(`#${containerId} button[data-position="${posStr}"]`);
+        if (btn) btn.classList.add('active');
     };
 
     if (type === 'texts') {
         const s = layer;
-        setValue('text-content', s.content); setValue('text-font-family', s.fontFamily); setValue('text-font-size', s.fontSize); setActive('text-bold', s.bold); setActive('text-italic', s.italic); setValue('text-color', s.color); setValue('text-opacity', s.opacity); setValue('text-padding', s.padding); setValue('text-line-height', s.lineHeight);
+        setValue('text-content', s.content); setValue('text-font-family', s.fontFamily); setValue('text-font-size', s.fontSize); setActive('text-bold', s.bold); setActive('text-italic', s.italic); setValue('text-color', s.color); setValue('text-opacity', s.opacity); setValue('text-padding', s.padding); setValue('text-line-height', s.lineHeight); setChecked('text-free-placement', s.freePlacement);
         document.querySelectorAll('[data-align]').forEach(el => el.classList.remove('active')); setActive(`text-align-${s.align}`, true);
         if(s.gradient) { setChecked('text-gradient-enable', s.gradient.enabled); setValue('text-gradient-color', s.gradient.color); setValue('text-gradient-direction', s.gradient.direction); }
         if(s.stroke) { setChecked('text-stroke-enable', s.stroke.enabled); setValue('text-stroke-color', s.stroke.color); setValue('text-stroke-width', s.stroke.width); }
         if(s.shadow) { setChecked('text-shadow-enable', s.shadow.enabled); setValue('text-shadow-color', s.shadow.color); setValue('text-shadow-blur', s.shadow.blur); }
         if(s.position) setPosition('text-position', s.position);
+        document.getElementById('text-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
     } else if (type === 'logos') {
         const s = layer;
-        setValue('logo-size', s.size); setValue('logo-opacity', s.opacity); setValue('logo-padding', s.padding);
+        setValue('logo-size', s.size); setValue('logo-opacity', s.opacity); setValue('logo-padding', s.padding); setChecked('logo-free-placement', s.freePlacement);
         document.getElementById('logo-filename')!.textContent = s.name;
         (document.getElementById('logo-preview') as HTMLImageElement)!.src = s.path;
         document.getElementById('logo-preview-container')!.classList.remove('hidden');
         if(s.position) setPosition('logo-position', s.position);
+        document.getElementById('logo-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
     } else if (type === 'icons') {
         const s = layer;
         const display = document.getElementById('icon-display')!;
         display.innerHTML = `<i class="${s.icon.class}"></i><span>${s.icon.name}</span>`;
-        setValue('icon-size', s.size); setValue('icon-color', s.color); setValue('icon-opacity', s.opacity); setValue('icon-padding', s.padding);
+        setValue('icon-size', s.size); setValue('icon-color', s.color); setValue('icon-opacity', s.opacity); setValue('icon-padding', s.padding); setChecked('icon-free-placement', s.freePlacement);
         if(s.position) setPosition('icon-position', s.position);
+        document.getElementById('icon-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
     }
 
     toggleControlGroups();
@@ -270,6 +293,29 @@ export function filterIcons(e: Event) {
 }
 export function updateStartButtonState() { 
     (document.getElementById('start-btn') as HTMLButtonElement).disabled = !(AppState.images.length > 0 && AppState.outputDir); 
+}
+
+function updateIndicator(groupId: string, countOrState: number | boolean) {
+    const groupHeader = document.getElementById(groupId)?.querySelector('.group-header');
+    if (!groupHeader) return;
+    const indicator = groupHeader.querySelector('.header-indicator') as HTMLElement;
+    if (!indicator) return;
+
+    if (typeof countOrState === 'number') {
+        indicator.textContent = countOrState > 0 ? `(${countOrState})` : '';
+    } else if (typeof countOrState === 'boolean') {
+        indicator.textContent = countOrState ? 'On' : '';
+        indicator.classList.toggle('on', countOrState);
+    }
+}
+
+export function updateCollapsibleIndicators() {
+    updateIndicator('text-group', AppState.settings.texts?.filter(t => t.enabled).length || 0);
+    updateIndicator('logo-group', AppState.settings.logos?.filter(l => l.enabled).length || 0);
+    updateIndicator('icon-group', AppState.settings.icons?.filter(i => i.enabled).length || 0);
+    updateIndicator('tile-group', AppState.settings.tile?.enabled);
+    updateIndicator('pattern-group', AppState.settings.pattern?.enabled);
+    updateIndicator('frame-group', AppState.settings.frame?.enabled);
 }
 
 export const UIEvents = {

@@ -49,9 +49,10 @@
         </div>
 
         <!-- Text Watermark -->
-        <div class="control-group">
+        <div class="control-group" id="text-group">
           <button class="group-header collapsible active">
             <h3><i class="fa-solid fa-font"></i> Text Watermarks</h3>
+            <span class="header-indicator"></span>
             <i class="fa-solid fa-chevron-down collapse-icon"></i>
           </button>
           <div class="group-body">
@@ -133,6 +134,9 @@
                  <input type="range" id="text-shadow-blur" min="0" max="20" value="5">
                  <span class="value-display" id="text-shadow-blur-value">5px</span>
               </div>
+              <label class="group-header sub-header">
+                  <span>Free Placement</span><label class="toggle-switch"><input type="checkbox" id="text-free-placement"><span class="slider"></span></label>
+              </label>
               <label>Position & Padding</label>
               <div class="position-grid" id="text-position">
                 <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
@@ -148,9 +152,10 @@
         </div>
 
         <!-- Logo Watermark -->
-        <div class="control-group">
+        <div class="control-group" id="logo-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-regular fa-image"></i> Logo Watermarks</h3>
+                <span class="header-indicator"></span>
                 <i class="fa-solid fa-chevron-down collapse-icon"></i>
             </button>
             <div class="group-body">
@@ -173,6 +178,9 @@
                     <input type="range" id="logo-opacity" min="0" max="1" step="0.01" value="0.7">
                     <span class="value-display" id="logo-opacity-value">70%</span>
                 </div>
+                <label class="group-header sub-header">
+                    <span>Free Placement</span><label class="toggle-switch"><input type="checkbox" id="logo-free-placement"><span class="slider"></span></label>
+                </label>
                 <label>Position & Padding</label>
                 <div class="position-grid" id="logo-position">
                     <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
@@ -188,9 +196,10 @@
         </div>
 
         <!-- Icon Watermark -->
-        <div class="control-group">
+        <div class="control-group" id="icon-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-icons"></i> Icon Watermarks</h3>
+                <span class="header-indicator"></span>
                 <i class="fa-solid fa-chevron-down collapse-icon"></i>
             </button>
             <div class="group-body">
@@ -214,6 +223,9 @@
                     <input type="range" id="icon-opacity" min="0" max="1" step="0.01" value="0.7">
                     <span class="value-display" id="icon-opacity-value">70%</span>
                 </div>
+                <label class="group-header sub-header">
+                    <span>Free Placement</span><label class="toggle-switch"><input type="checkbox" id="icon-free-placement"><span class="slider"></span></label>
+                </label>
                 <label>Position & Padding</label>
                 <div class="position-grid" id="icon-position">
                     <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
@@ -229,10 +241,11 @@
         </div>
         
         <!-- Tiled Watermark -->
-        <div class="control-group">
+        <div class="control-group" id="tile-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-table-cells"></i> Tiled Watermark</h3>
                 <div class="header-controls">
+                    <span class="header-indicator"></span>
                     <label class="toggle-switch"><input type="checkbox" id="tile-enable"><span class="slider"></span></label>
                     <i class="fa-solid fa-chevron-down collapse-icon"></i>
                 </div>
@@ -267,10 +280,11 @@
         </div>
 
         <!-- Pattern Overlay -->
-        <div class="control-group">
+        <div class="control-group" id="pattern-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-layer-group"></i> Pattern Overlay</h3>
                 <div class="header-controls">
+                    <span class="header-indicator"></span>
                     <label class="toggle-switch"><input type="checkbox" id="pattern-enable"><span class="slider"></span></label>
                     <i class="fa-solid fa-chevron-down collapse-icon"></i>
                 </div>
@@ -303,10 +317,11 @@
         </div>
 
         <!-- Frame -->
-        <div class="control-group">
+        <div class="control-group" id="frame-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-border-all"></i> Frame</h3>
                 <div class="header-controls">
+                    <span class="header-indicator"></span>
                     <label class="toggle-switch"><input type="checkbox" id="frame-enable"><span class="slider"></span></label>
                     <i class="fa-solid fa-chevron-down collapse-icon"></i>
                 </div>
@@ -401,48 +416,50 @@
     </aside>
 
     <main class="main-content">
-      <div id="dropzone">
-        <div class="dropzone-content">
-          <i class="fa-solid fa-images"></i>
-          <p>Drag & Drop Images Here</p>
-          <span>or</span>
-          <button id="add-images-btn" class="button-primary">Browse Files</button>
+      <div id="grid-view">
+        <div id="dropzone">
+          <div class="dropzone-content">
+            <i class="fa-solid fa-images"></i>
+            <p>Drag & Drop Images Here</p>
+            <span>or</span>
+            <button id="add-images-btn" class="button-primary">Browse Files</button>
+          </div>
+        </div>
+        <div id="image-grid" class="hidden"></div>
+        <div id="image-grid-actions" class="hidden">
+          <button id="clear-images-btn" class="button-danger">Clear All</button>
+          <button id="start-btn" class="button-start" disabled>
+            <span class="btn-text">Start Processing</span>
+            <i class="fa-solid fa-circle-notch fa-spin btn-spinner hidden"></i>
+          </button>
+        </div>
+        <div id="progress-container" class="hidden">
+          <p id="progress-text"></p>
+          <div class="progress-bar">
+              <div id="progress-bar-inner"></div>
+          </div>
         </div>
       </div>
-      <div id="image-grid" class="hidden"></div>
-      <div id="image-grid-actions" class="hidden">
-        <button id="clear-images-btn" class="button-danger">Clear All</button>
-        <button id="start-btn" class="button-start" disabled>
-          <span class="btn-text">Start Processing</span>
-          <i class="fa-solid fa-circle-notch fa-spin btn-spinner hidden"></i>
-        </button>
-      </div>
-      <div id="progress-container" class="hidden">
-        <p id="progress-text"></p>
-        <div class="progress-bar">
-            <div id="progress-bar-inner"></div>
-        </div>
+      
+      <div id="preview-view" class="hidden">
+          <div class="preview-header">
+              <button id="back-to-grid-btn" class="button-secondary"><i class="fa-solid fa-arrow-left"></i> Back to List</button>
+              <span id="preview-image-name"></span>
+          </div>
+          <div id="preview-canvas-container">
+              <canvas id="preview-canvas"></canvas>
+          </div>
+          <div class="preview-toolbar">
+              <button id="prev-image-btn" title="Previous Image"><i class="fa-solid fa-chevron-left"></i></button>
+              <button id="zoom-out-btn" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+              <span id="zoom-level">100%</span>
+              <button id="zoom-in-btn" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+              <button id="zoom-reset-btn" title="Fit to Screen"><i class="fa-solid fa-compress"></i></button>
+              <button id="toggle-watermark-btn" title="Hold to view original"><i class="fa-solid fa-eye-slash"></i></button>
+              <button id="next-image-btn" title="Next Image"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
       </div>
     </main>
-  </div>
-
-  <div id="preview-modal" class="hidden">
-    <div id="preview-backdrop" class="preview-backdrop"></div>
-    <div class="preview-content">
-      <div id="preview-canvas-container">
-        <canvas id="preview-canvas"></canvas>
-      </div>
-    </div>
-    <div class="preview-toolbar">
-      <button id="prev-image-btn" title="Previous Image"><i class="fa-solid fa-chevron-left"></i></button>
-      <button id="zoom-out-btn" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-      <span id="zoom-level">100%</span>
-      <button id="zoom-in-btn" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-      <button id="zoom-reset-btn" title="Fit to Screen"><i class="fa-solid fa-compress"></i></button>
-      <button id="toggle-watermark-btn" title="Hold to view original"><i class="fa-solid fa-eye-slash"></i></button>
-      <button id="next-image-btn" title="Next Image"><i class="fa-solid fa-chevron-right"></i></button>
-    </div>
-    <button id="preview-close-btn" title="Close Preview"><i class="fa-solid fa-xmark"></i></button>
   </div>
   
   <div id="icon-picker-modal" class="modal hidden">

@@ -1,11 +1,11 @@
 import { AppState, SETTINGS_KEY, PRESETS_PREFIX, settingsUpdateTimeout } from './state';
 import { drawPreview } from './preview';
-import { toggleControlGroups, setupRangeValueDisplays, renderAllLayerLists, updateActiveLayerControls } from './ui';
+import { toggleControlGroups, setupRangeValueDisplays, renderAllLayerLists, updateActiveLayerControls, updateCollapsibleIndicators } from './ui';
 
 export function updateSettings() {
     if (AppState.activeLayer) {
         const { type, id } = AppState.activeLayer;
-        const layer = AppState.settings[type]?.find(l => l.id === id);
+        const layer = AppState.settings[type]?.find((l: { id: any; }) => l.id === id);
         if (layer) {
             const getPosition = (containerId: string) => {
                 const activeBtn = document.querySelector(`#${containerId} button.active`) as HTMLElement;
@@ -29,13 +29,13 @@ export function updateSettings() {
 
             switch (type) {
                 case 'texts':
-                    Object.assign(layer, { content: getValue('text-content'), fontFamily: getValue('text-font-family'), fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'), align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left', lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true), padding: getValue('text-padding', true), gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') }, stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) }, shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) }, position: getPosition('text-position') });
+                    Object.assign(layer, { content: getValue('text-content'), fontFamily: getValue('text-font-family'), fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'), align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left', lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true), padding: getValue('text-padding', true), gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') }, stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) }, shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) }, position: getPosition('text-position'), freePlacement: isChecked('text-free-placement') });
                     break;
                 case 'logos':
-                    Object.assign(layer, { size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: getPosition('logo-position') });
+                    Object.assign(layer, { size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: getPosition('logo-position'), freePlacement: isChecked('logo-free-placement') });
                     break;
                 case 'icons':
-                    Object.assign(layer, { size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: getPosition('icon-position') });
+                    Object.assign(layer, { size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: getPosition('icon-position'), freePlacement: isChecked('icon-free-placement') });
                     break;
             }
         }
@@ -86,6 +86,7 @@ function applySettingsToUI(s: any) {
 export function updateSettingsAndPreview() {
     updateSettings();
     drawPreview();
+    updateCollapsibleIndicators();
     clearTimeout(settingsUpdateTimeout);
     (window as any).settingsUpdateTimeout = window.setTimeout(saveCurrentSettingsToLocalStorage, 300);
 }

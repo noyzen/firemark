@@ -1,7 +1,7 @@
 import { loadLastSettings, loadPresets, updateSettingsAndPreview } from './modules/settings';
-import { setupPreviewModalListeners } from './modules/preview';
+import { setupPreviewListeners } from './modules/preview';
 // Fix: Correctly import UIEvents from ui.ts and remove incorrect import from settings.ts
-import { setupCollapsibleGroups, setupRangeValueDisplays, toggleControlGroups, populatePickers, renderAllLayerLists, updateActiveLayerControls, handleGridClick, UIEvents } from './modules/ui';
+import { setupCollapsibleGroups, setupRangeValueDisplays, toggleControlGroups, populatePickers, renderAllLayerLists, updateActiveLayerControls, handleGridClick, UIEvents, showGrid } from './modules/ui';
 import { handleAddImages, handleClearImages, handleDrop, handleSelectOutputDir, processImages } from './modules/file-handling';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -57,6 +57,7 @@ function setupEventListeners() {
     document.getElementById('output-dir-btn')!.addEventListener('click', handleSelectOutputDir);
     document.getElementById('start-btn')!.addEventListener('click', processImages);
     document.getElementById('image-grid')!.addEventListener('click', handleGridClick);
+    document.getElementById('back-to-grid-btn')!.addEventListener('click', showGrid);
 
     // Fix: Use the correctly imported UIEvents object
     document.getElementById('add-text-btn')!.addEventListener('click', () => UIEvents.addLayer('texts'));
@@ -100,7 +101,7 @@ function setupEventListeners() {
     document.getElementById('preset-delete-confirm-btn')!.addEventListener('click', UIEvents.deletePreset);
     document.getElementById('presets-select')!.addEventListener('change', UIEvents.applyPreset);
     
-    setupPreviewModalListeners();
+    setupPreviewListeners();
 }
 
 export {};

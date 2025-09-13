@@ -1,27 +1,23 @@
 import { AppState, previewState } from './state';
 import { drawImageEffects, drawFrameWatermark, drawPatternWatermark, drawTileWatermark, drawSingleTextWatermark, drawSingleLogoWatermark, drawSingleIconWatermark, getWatermarkBBox } from './drawing';
 import { updateSettingsAndPreview } from './settings';
-import { selectLayer, updateActiveLayerControls } from './ui';
+import { selectLayer, updateActiveLayerControls, showPreview as showPreviewView } from './ui';
 
-const modal = document.getElementById('preview-modal')!; 
 const previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement; 
 const previewCtx = previewCanvas.getContext('2d', { willReadFrequently: true })!;
 
 export function openPreview(index: number) {
     previewState.index = index; 
+    const image = AppState.images[index];
+    document.getElementById('preview-image-name')!.textContent = image.name;
+
     previewState.image = new Image();
     previewState.image.onload = () => { 
-        modal.classList.remove('hidden'); 
+        showPreviewView();
         previewState.visible = true; 
         resetZoomAndPan(); 
     };
-    previewState.image.src = AppState.images[index].path;
-}
-
-function closePreview() { 
-    modal.classList.add('hidden'); 
-    previewState.visible = false; 
-    previewState.image = null; 
+    previewState.image.src = image.path;
 }
 
 function changePreviewImage(offset: number) { 
@@ -99,22 +95,23 @@ function handlePreviewMouseDown(e: MouseEvent) {
 function handlePreviewMouseMove(e: MouseEvent) {
     if (previewState.isDragging) {
         const { type, id } = previewState.isDragging;
-        const layer = AppState.settings[type].find(l => l.id === id);
+        const layer = AppState.settings[type].find((l: { id: any; }) => l.id === id);
         if (!layer) return;
 
-        const mouse = { x: e.offsetX / previewState.zoom, y: e.offsetY / previewState.zoom };
-        const bbox = getWatermarkBBox(type, layer, previewCanvas.width, previewCanvas.height)!;
-        const newX = mouse.x - previewState.dragOffset.x;
-        const newY = mouse.y - previewState.dragOffset.y;
-
-        const safeWidth = previewCanvas.width - bbox.w - layer.padding * 2;
-        const safeHeight = previewCanvas.height - bbox.h - layer.padding * 2;
-
-        layer.position.x = safeWidth > 0 ? (newX - layer.padding) / safeWidth : 0.5;
-        layer.position.y = safeHeight > 0 ? (newY - layer.padding) / safeHeight : 0.5;
-        layer.position.x = Math.max(0, Math.min(1, layer.position.x));
-        layer.position.y = Math.max(0, Math.min(1, layer.position.y));
-
+        if (layer.freePlacement) {
+            const mouse = { x: e.offsetX / previewState.zoom, y: e.offsetY / previewState.zoom };
+            const bbox = getWatermarkBBox(type, layer, previewCanvas.width, previewCanvas.height)!;
+            layer.position.x = (mouse.x - previewState.dragOffset.x) / (previewCanvas.width);
+            layer.position.y = (mouse.y - previewState.dragOffset.y) / (previewCanvas.height);
+        } else {
+             const { width, height } = previewCanvas;
+             const xPercent = e.offsetX / (width * previewState.zoom);
+             const yPercent = e.offsetY / (height * previewState.zoom);
+             const snapPoints = [0, 0.5, 1];
+             layer.position.x = snapPoints.reduce((prev, curr) => Math.abs(curr - xPercent) < Math.abs(prev - xPercent) ? curr : prev);
+             layer.position.y = snapPoints.reduce((prev, curr) => Math.abs(curr - yPercent) < Math.abs(prev - yPercent) ? curr : prev);
+        }
+        
         updateActiveLayerControls();
         drawPreview();
     } else if (previewState.isPanning) {
@@ -138,9 +135,7 @@ function handlePreviewWheel(e: WheelEvent) {
     changeZoom(factor); 
 }
 
-export function setupPreviewModalListeners() {
-    document.getElementById('preview-close-btn')!.addEventListener('click', closePreview); 
-    document.getElementById('preview-backdrop')!.addEventListener('click', closePreview);
+export function setupPreviewListeners() {
     document.getElementById('zoom-in-btn')!.addEventListener('click', () => changeZoom(1.25)); 
     document.getElementById('zoom-out-btn')!.addEventListener('click', () => changeZoom(0.8)); 
     document.getElementById('zoom-reset-btn')!.addEventListener('click', resetZoomAndPan);

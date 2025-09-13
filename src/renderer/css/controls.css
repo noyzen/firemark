@@ -40,7 +40,8 @@
 .group-header .header-controls { 
   display: flex; 
   align-items: center; 
-  gap: 8px; 
+  gap: 8px;
+  margin-left: auto;
 }
 .group-header .collapse-icon { 
   transition: transform 0.2s ease-in-out; 
@@ -395,6 +396,11 @@ input[type=range]:hover::-webkit-slider-thumb {
 .controls-wrapper.disabled {
   opacity: 0.3;
   pointer-events: none;
+}
+.controls-wrapper.free-placement-active .position-grid,
+.controls-wrapper.free-placement-active .position-grid + .range-with-value,
+.controls-wrapper.free-placement-active label[for$="-padding"] {
+  display: none;
 }
 
 /* --- Misc Controls --- */
