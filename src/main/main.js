@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, nativeTheme, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, Menu, nativeTheme, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const WindowState = require('electron-window-state');
@@ -75,7 +75,7 @@ app.on('ready', createWindow);
 ipcMain.handle('dialog:openImages', async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile', 'multiSelections'],
-    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] }]
+    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif'] }]
   });
   if (canceled) return [];
   return filePaths;
@@ -89,12 +89,13 @@ ipcMain.handle('dialog:openDirectory', async () => {
     return filePaths[0];
 });
 
-ipcMain.handle('file:save', async (event, { dataUrl, directory, originalName }) => {
+ipcMain.handle('file:save', async (event, { dataUrl, directory, originalName, format }) => {
     try {
-        const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, "");
+        const mimeType = `image/${format}`;
+        const base64Data = dataUrl.replace(/^data:.+;base64,/, "");
         const buffer = Buffer.from(base64Data, 'base64');
         const parsedPath = path.parse(originalName);
-        const newName = `${parsedPath.name}-watermarked${parsedPath.ext}`;
+        const newName = `${parsedPath.name}-watermarked.${format}`;
         const outputPath = path.join(directory, newName);
         await fs.promises.writeFile(outputPath, buffer);
         return { success: true, path: outputPath };
@@ -102,6 +103,10 @@ ipcMain.handle('file:save', async (event, { dataUrl, directory, originalName }) 
         console.error('Failed to save file:', error);
         return { success: false, error: error.message };
     }
+});
+
+ipcMain.handle('app:open-folder', (event, folderPath) => {
+    shell.openPath(folderPath);
 });
 
 

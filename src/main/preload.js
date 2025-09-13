@@ -17,5 +17,6 @@ contextBridge.exposeInMainWorld('windowControls', {
 contextBridge.exposeInMainWorld('api', {
   openImages: () => ipcRenderer.invoke('dialog:openImages'),
   selectOutputDir: () => ipcRenderer.invoke('dialog:openDirectory'),
-  saveFile: ({ dataUrl, directory, originalName }) => ipcRenderer.invoke('file:save', { dataUrl, directory, originalName }),
+  saveFile: ({ dataUrl, directory, originalName, format }) => ipcRenderer.invoke('file:save', { dataUrl, directory, originalName, format }),
+  openFolder: (path) => ipcRenderer.invoke('app:open-folder', path),
 });

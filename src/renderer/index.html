@@ -31,88 +31,343 @@
         <h2><i class="fa-solid fa-sliders"></i> Controls</h2>
       </div>
       <div class="sidebar-content">
+        <!-- Presets -->
+        <div class="control-group">
+            <button class="group-header collapsible">
+                <h3><i class="fa-solid fa-star"></i> Presets</h3>
+                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+            </button>
+            <div class="group-body">
+                <div class="presets-group">
+                    <select id="presets-select"><option value="">Select a preset...</option></select>
+                    <button id="preset-save-btn" class="button-icon" title="Save Current Settings"><i class="fa-solid fa-save"></i></button>
+                    <button id="preset-delete-btn" class="button-icon" title="Delete Selected Preset"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+        </div>
+
         <!-- Text Watermark -->
         <div class="control-group">
-          <div class="group-header">
-            <h3>Text Watermark</h3>
-            <label class="toggle-switch"><input type="checkbox" id="text-enable"><span class="slider"></span></label>
-          </div>
-          <div class="group-body" id="text-controls">
+          <button class="group-header collapsible active">
+            <h3><i class="fa-solid fa-font"></i> Text Watermark</h3>
+            <div class="header-controls">
+              <label class="toggle-switch"><input type="checkbox" id="text-enable"><span class="slider"></span></label>
+              <i class="fa-solid fa-chevron-down collapse-icon"></i>
+            </div>
+          </button>
+          <div class="group-body">
             <label for="text-content">Text</label>
-            <input type="text" id="text-content" value="© Your Brand">
-            <label for="text-font-size">Font Size</label>
-            <input type="number" id="text-font-size" value="48" min="8">
+            <div class="input-with-button">
+                <input type="text" id="text-content" value="© Your Brand">
+                <button id="emoji-picker-btn" class="button-icon" title="Add Emoji"><i class="fa-regular fa-face-smile"></i></button>
+            </div>
+            
+            <label for="text-font-family">Font</label>
+            <select id="text-font-family">
+                <optgroup label="Sans-serif">
+                    <option selected>Arial</option><option>Verdana</option><option>Helvetica</option><option>Roboto</option><option>Inter</option><option>Calibri</option><option>Gill Sans</option><option>Futura</option>
+                </optgroup>
+                <optgroup label="Serif">
+                    <option>Times New Roman</option><option>Georgia</option><option>Garamond</option><option>Baskerville</option>
+                </optgroup>
+                <optgroup label="Monospace">
+                    <option>Courier New</option><option>Lucida Console</option><option>Monaco</option>
+                </optgroup>
+                 <optgroup label="Display">
+                    <option>Impact</option><option>Brush Script MT</option>
+                </optgroup>
+            </select>
+            <label>Font Size & Style</label>
+            <div class="inline-controls">
+              <input type="number" id="text-font-size" value="48" min="8">
+              <div class="text-styles">
+                  <button id="text-bold" data-style="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                  <button id="text-italic" data-style="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
+              </div>
+            </div>
             <label for="text-color">Color & Opacity</label>
             <div class="color-opacity">
-              <input type="color" id="text-color" value="#FFFFFF">
-              <input type="range" id="text-opacity" min="0" max="1" step="0.05" value="0.5">
+              <input type="color" id="text-color" value="#FFFFFF" title="Primary Color">
+              <input type="range" id="text-opacity" min="0" max="1" step="0.01" value="0.7">
+              <span class="value-display" id="text-opacity-value">70%</span>
             </div>
-            <label>Position</label>
+            <label class="group-header sub-header">
+                <span>Gradient</span><label class="toggle-switch"><input type="checkbox" id="text-gradient-enable"><span class="slider"></span></label>
+            </label>
+            <div id="text-gradient-controls" class="sub-group hidden">
+                <input type="color" id="text-gradient-color" value="#4a90e2" title="Gradient End Color">
+                <select id="text-gradient-direction">
+                    <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
+                </select>
+            </div>
+            <label class="group-header sub-header">
+                <span>Stroke (Outline)</span><label class="toggle-switch"><input type="checkbox" id="text-stroke-enable"><span class="slider"></span></label>
+            </label>
+            <div id="text-stroke-controls" class="sub-group hidden">
+               <input type="color" id="text-stroke-color" value="#000000" title="Stroke Color">
+               <input type="range" id="text-stroke-width" min="1" max="10" value="2">
+               <span class="value-display" id="text-stroke-width-value">2px</span>
+            </div>
+            <label class="group-header sub-header">
+                <span>Drop Shadow</span><label class="toggle-switch"><input type="checkbox" id="text-shadow-enable"><span class="slider"></span></label>
+            </label>
+            <div id="text-shadow-controls" class="sub-group hidden">
+               <input type="color" id="text-shadow-color" value="#000000" title="Shadow Color">
+               <input type="range" id="text-shadow-blur" min="0" max="20" value="5">
+               <span class="value-display" id="text-shadow-blur-value">5px</span>
+            </div>
+            <label>Position & Padding</label>
             <div class="position-grid" id="text-position">
-              <button data-position="top-left"></button>
-              <button data-position="top-center"></button>
-              <button data-position="top-right"></button>
-              <button data-position="center-left"></button>
-              <button data-position="center" class="active"></button>
-              <button data-position="center-right"></button>
-              <button data-position="bottom-left"></button>
-              <button data-position="bottom-center"></button>
-              <button data-position="bottom-right"></button>
+              <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
+              <button data-position="center-left"></button><button data-position="center" class="active"></button><button data-position="center-right"></button>
+              <button data-position="bottom-left"></button><button data-position="bottom-center"></button><button data-position="bottom-right"></button>
+            </div>
+             <div class="range-with-value">
+                <input type="range" id="text-padding" min="0" max="200" step="1" value="20">
+                <span class="value-display" id="text-padding-value">20px</span>
             </div>
           </div>
         </div>
 
         <!-- Logo Watermark -->
         <div class="control-group">
-            <div class="group-header">
-                <h3>Logo Watermark</h3>
-                <label class="toggle-switch"><input type="checkbox" id="logo-enable"><span class="slider"></span></label>
-            </div>
-            <div class="group-body" id="logo-controls">
+            <button class="group-header collapsible">
+                <h3><i class="fa-regular fa-image"></i> Logo Watermark</h3>
+                <div class="header-controls">
+                    <label class="toggle-switch"><input type="checkbox" id="logo-enable"><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
+            </button>
+            <div class="group-body hidden">
                 <button id="logo-select-btn" class="button-secondary">Select Logo Image</button>
                 <div id="logo-preview-container" class="hidden">
                     <img id="logo-preview" src="#" alt="Logo Preview">
                     <span id="logo-filename"></span>
                 </div>
                 <label for="logo-size">Size (% of image width)</label>
-                <input type="range" id="logo-size" min="5" max="50" value="15">
+                <div class="range-with-value">
+                    <input type="range" id="logo-size" min="1" max="100" value="15">
+                    <span class="value-display" id="logo-size-value">15%</span>
+                </div>
                 <label for="logo-opacity">Opacity</label>
-                <input type="range" id="logo-opacity" min="0" max="1" step="0.05" value="0.7">
-                <label>Position</label>
+                 <div class="range-with-value">
+                    <input type="range" id="logo-opacity" min="0" max="1" step="0.01" value="0.7">
+                    <span class="value-display" id="logo-opacity-value">70%</span>
+                </div>
+                <label>Position & Padding</label>
                 <div class="position-grid" id="logo-position">
                     <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
                     <button data-position="center-left"></button><button data-position="center"></button><button data-position="center-right"></button>
                     <button data-position="bottom-left" class="active"></button><button data-position="bottom-center"></button><button data-position="bottom-right"></button>
                 </div>
+                <div class="range-with-value">
+                    <input type="range" id="logo-padding" min="0" max="200" step="1" value="20">
+                    <span class="value-display" id="logo-padding-value">20px</span>
+                </div>
             </div>
         </div>
 
+        <!-- Icon Watermark -->
+        <div class="control-group">
+            <button class="group-header collapsible">
+                <h3><i class="fa-solid fa-icons"></i> Icon Watermark</h3>
+                <div class="header-controls">
+                    <label class="toggle-switch"><input type="checkbox" id="icon-enable"><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
+            </button>
+            <div class="group-body hidden">
+                <div class="input-with-button">
+                    <div id="icon-display" class="button-secondary"><i class="fa-solid fa-copyright"></i><span>fa-copyright</span></div>
+                    <button id="icon-picker-btn" class="button-icon"><i class="fa-solid fa-arrow-pointer"></i></button>
+                </div>
+                <label for="icon-size">Size</label>
+                <div class="range-with-value">
+                    <input type="range" id="icon-size" min="10" max="500" value="64">
+                    <span class="value-display" id="icon-size-value">64px</span>
+                </div>
+                <label for="icon-color">Color & Opacity</label>
+                <div class="color-opacity">
+                    <input type="color" id="icon-color" value="#FFFFFF">
+                    <input type="range" id="icon-opacity" min="0" max="1" step="0.01" value="0.7">
+                    <span class="value-display" id="icon-opacity-value">70%</span>
+                </div>
+                <label>Position & Padding</label>
+                <div class="position-grid" id="icon-position">
+                    <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
+                    <button data-position="center-left"></button><button data-position="center"></button><button data-position="center-right"></button>
+                    <button data-position="bottom-right" class="active"></button><button data-position="bottom-center"></button><button data-position="bottom-left"></button>
+                </div>
+                <div class="range-with-value">
+                    <input type="range" id="icon-padding" min="0" max="200" step="1" value="20">
+                    <span class="value-display" id="icon-padding-value">20px</span>
+                </div>
+            </div>
+        </div>
+        
         <!-- Tiled Watermark -->
         <div class="control-group">
-            <div class="group-header">
-                <h3>Tiled Watermark</h3>
-                <label class="toggle-switch"><input type="checkbox" id="tile-enable"><span class="slider"></span></label>
-            </div>
-            <div class="group-body" id="tile-controls">
-                <label for="tile-text-content">Text</label>
-                <input type="text" id="tile-text-content" value="Protected">
-                <label for="tile-font-size">Font Size</label>
-                <input type="number" id="tile-font-size" value="32" min="8">
+            <button class="group-header collapsible">
+                <h3><i class="fa-solid fa-table-cells"></i> Tiled Watermark</h3>
+                <div class="header-controls">
+                    <label class="toggle-switch"><input type="checkbox" id="tile-enable"><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
+            </button>
+            <div class="group-body hidden">
+                 <label class="group-header sub-header">
+                    <span>Use Logo for Tile</span>
+                    <label class="toggle-switch"><input type="checkbox" id="tile-use-logo"><span class="slider"></span></label>
+                </label>
+                <div id="tile-text-options">
+                    <label for="tile-text-content">Text</label>
+                    <input type="text" id="tile-text-content" value="Protected">
+                    <label for="tile-font-size">Font Size</label>
+                    <input type="number" id="tile-font-size" value="32" min="8">
+                </div>
                 <label for="tile-opacity">Opacity</label>
-                <input type="range" id="tile-opacity" min="0" max="1" step="0.05" value="0.15">
-                <label for="tile-rotation">Rotation (degrees)</label>
-                <input type="range" id="tile-rotation" min="-90" max="90" value="-30">
+                <div class="range-with-value">
+                    <input type="range" id="tile-opacity" min="0" max="1" step="0.01" value="0.15">
+                    <span class="value-display" id="tile-opacity-value">15%</span>
+                </div>
+                <label for="tile-rotation">Rotation</label>
+                <div class="range-with-value">
+                    <input type="range" id="tile-rotation" min="-90" max="90" value="-30">
+                    <span class="value-display" id="tile-rotation-value">-30°</span>
+                </div>
+                <label for="tile-spacing">Spacing</label>
+                <div class="range-with-value">
+                    <input type="range" id="tile-spacing" min="10" max="500" value="150">
+                    <span class="value-display" id="tile-spacing-value">150px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pattern Watermark -->
+        <div class="control-group">
+            <button class="group-header collapsible">
+                <h3><i class="fa-solid fa-layer-group"></i> Pattern Overlay</h3>
+                <div class="header-controls">
+                    <label class="toggle-switch"><input type="checkbox" id="pattern-enable"><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
+            </button>
+            <div class="group-body hidden">
+                <label for="pattern-type">Pattern Type</label>
+                <select id="pattern-type">
+                    <option value="checker">Checkerboard</option>
+                    <option value="lines">Diagonal Lines</option>
+                    <option value="cross">Crosshatch</option>
+                </select>
+                <label for="pattern-color1">Colors & Opacity</label>
+                <div class="color-opacity">
+                    <input type="color" id="pattern-color1" value="#000000" title="Primary Color">
+                    <input type="color" id="pattern-color2" value="#FFFFFF" title="Secondary Color">
+                    <input type="range" id="pattern-opacity" min="0" max="1" step="0.01" value="0.1">
+                    <span class="value-display" id="pattern-opacity-value">10%</span>
+                </div>
+                <label for="pattern-size">Size / Density</label>
+                <div class="range-with-value">
+                    <input type="range" id="pattern-size" min="5" max="100" value="20">
+                    <span class="value-display" id="pattern-size-value">20px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Frame Watermark -->
+        <div class="control-group">
+            <button class="group-header collapsible">
+                <h3><i class="fa-solid fa-border-all"></i> Frame</h3>
+                <div class="header-controls">
+                    <label class="toggle-switch"><input type="checkbox" id="frame-enable"><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
+            </button>
+            <div class="group-body hidden">
+                <label for="frame-style">Style</label>
+                <select id="frame-style">
+                    <option value="single">Single</option>
+                    <option value="double">Double</option>
+                </select>
+                <label for="frame-color">Color</label>
+                <input type="color" id="frame-color" value="#FFFFFF">
+                <label for="frame-width">Thickness</label>
+                <div class="range-with-value">
+                    <input type="range" id="frame-width" min="1" max="50" value="5">
+                    <span class="value-display" id="frame-width-value">5px</span>
+                </div>
+                <label for="frame-padding">Padding</label>
+                <div class="range-with-value">
+                    <input type="range" id="frame-padding" min="0" max="100" value="10">
+                    <span class="value-display" id="frame-padding-value">10px</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Effects -->
+        <div class="control-group">
+            <button class="group-header collapsible">
+                <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Image Effects</h3>
+                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+            </button>
+            <div class="group-body hidden">
+                <label class="group-header sub-header">
+                    <span>Gaussian Blur</span><label class="toggle-switch"><input type="checkbox" id="effect-blur-enable"><span class="slider"></span></label>
+                </label>
+                <div class="range-with-value">
+                    <input type="range" id="effect-blur-radius" min="0" max="20" step="0.1" value="0">
+                    <span class="value-display" id="effect-blur-radius-value">0px</span>
+                </div>
+                <label class="group-header sub-header">
+                    <span>Noise</span><label class="toggle-switch"><input type="checkbox" id="effect-noise-enable"><span class="slider"></span></label>
+                </label>
+                <div class="range-with-value">
+                    <input type="range" id="effect-noise-amount" min="0" max="100" value="0">
+                    <span class="value-display" id="effect-noise-amount-value">0%</span>
+                </div>
+                <label class="group-header sub-header">
+                    <span>Sharpen</span><label class="toggle-switch"><input type="checkbox" id="effect-sharpen-enable"><span class="slider"></span></label>
+                </label>
+                <div class="range-with-value">
+                    <input type="range" id="effect-sharpen-amount" min="0" max="2" step="0.1" value="0">
+                    <span class="value-display" id="effect-sharpen-amount-value">0%</span>
+                </div>
             </div>
         </div>
         
         <!-- Output Settings -->
         <div class="control-group">
-          <div class="group-header">
+          <button class="group-header collapsible active">
             <h3><i class="fa-solid fa-download"></i> Output Settings</h3>
-          </div>
+            <i class="fa-solid fa-chevron-down collapse-icon"></i>
+          </button>
           <div class="group-body">
             <button id="output-dir-btn" class="button-secondary">Select Output Folder</button>
             <p id="output-dir-path">No folder selected</p>
+            <label for="output-format">Format</label>
+            <select id="output-format">
+              <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="webp">WebP</option>
+            </select>
+            <div id="quality-control" class="hidden">
+              <label for="output-quality">Quality</label>
+              <div class="range-with-value">
+                <input type="range" id="output-quality" min="0.1" max="1" step="0.01" value="0.9">
+                <span class="value-display" id="output-quality-value">90%</span>
+              </div>
+            </div>
+            <label for="resize-mode">Resize</label>
+            <select id="resize-mode">
+                <option value="none">None</option>
+                <option value="width">Max Width</option>
+                <option value="height">Max Height</option>
+                <option value="fit">Max Dimensions</option>
+            </select>
+            <div id="resize-controls" class="inline-controls hidden">
+                <input type="number" id="resize-width" placeholder="Width" value="1920">
+                <input type="number" id="resize-height" placeholder="Height" value="1080">
+            </div>
           </div>
         </div>
       </div>
@@ -143,6 +398,42 @@
       </div>
     </main>
   </div>
-  <script src="renderer.js"></script>
+
+  <div id="preview-modal" class="hidden">
+    <div class="preview-backdrop"></div>
+    <div class="preview-content">
+      <div id="preview-canvas-container">
+        <canvas id="preview-canvas"></canvas>
+      </div>
+    </div>
+    <div class="preview-toolbar">
+      <button id="prev-image-btn" title="Previous Image"><i class="fa-solid fa-chevron-left"></i></button>
+      <button id="zoom-out-btn" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+      <span id="zoom-level">100%</span>
+      <button id="zoom-in-btn" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+      <button id="zoom-reset-btn" title="Fit to Screen"><i class="fa-solid fa-compress"></i></button>
+      <button id="toggle-watermark-btn" title="Hold to view original"><i class="fa-solid fa-eye-slash"></i></button>
+      <button id="next-image-btn" title="Next Image"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <button id="preview-close-btn" title="Close Preview"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  
+  <div id="icon-picker-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <h2>Select an Icon</h2>
+        <div id="icon-picker-grid"></div>
+    </div>
+  </div>
+  
+  <div id="emoji-picker-modal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <h2>Select an Emoji</h2>
+        <div id="emoji-picker-grid"></div>
+    </div>
+  </div>
+
+  <script type="module" src="index.tsx"></script>
 </body>
 </html>
