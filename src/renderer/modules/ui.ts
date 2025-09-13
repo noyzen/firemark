@@ -294,6 +294,19 @@ export function toggleControlGroups() {
     (document.getElementById('resize-width') as HTMLElement).style.display = (mode === 'width' || mode === 'fit') ? 'block' : 'none';
     (document.getElementById('resize-height') as HTMLElement).style.display = (mode === 'height' || mode === 'fit') ? 'block' : 'none';
 }
+
+function unescapeCssValue(value: string): string {
+    if (value.startsWith('\\')) {
+        const rest = value.substring(1);
+        const hexMatch = rest.match(/^[0-9a-fA-F]{1,6}/);
+        if (hexMatch) {
+            return String.fromCharCode(parseInt(hexMatch[0], 16));
+        }
+        return rest.charAt(0);
+    }
+    return value;
+}
+
 export async function populatePickers() {
     const iconGrid = document.getElementById('icon-picker-grid')!;
     if (iconGrid.children.length > 0) return; // Already populated
@@ -306,68 +319,48 @@ export async function populatePickers() {
         if (!response.ok) throw new Error(`Failed to load Font Awesome CSS: ${response.statusText}`);
         const cssText = await response.text();
         
-        // First pass: find all CSS variables for icon content
-        const varMap = new Map<string, string>();
-        const varRegex = /--fa-content-([^:]+):\s*['"]\\([a-fA-F0-9]+)/g;
-        let varMatch;
-        while ((varMatch = varRegex.exec(cssText)) !== null) {
-            const name = varMatch[1];
-            const unicode = String.fromCharCode(parseInt(varMatch[2], 16));
-            varMap.set(`--fa-content-${name}`, unicode);
-        }
+        const brandSeparator = ':host,:root{--fa-family-brands';
+        const parts = cssText.split(brandSeparator);
+        const standardCss = parts[0];
+        const brandsCss = parts.length > 1 ? brandSeparator + parts[1] : '';
 
-        // Second pass: find all icon rules, supporting direct unicode and CSS variables
-        const ruleRegex = /([^{}]+?)\s*\{\s*content:\s*(['"]\\([a-fA-F0-9]+)['"]|var\((--fa-content-[^)]+)\))/g;
-        let match;
-        
-        while ((match = ruleRegex.exec(cssText)) !== null) {
-            const selectors = match[1];
-            let unicode = '';
+        const ruleRegex = /([^{}]+)\s*\{\s*--fa:\s*"([^"]+)"\s*\}/g;
 
-            if (match[3]) { // Direct unicode match
-                unicode = String.fromCharCode(parseInt(match[3], 16));
-            } else if (match[4]) { // CSS variable match
-                const varName = match[4];
-                if (varMap.has(varName)) {
-                    unicode = varMap.get(varName)!;
-                }
-            }
+        const processCssPart = (cssPart: string, style: 'solid' | 'brands') => {
+            let match;
+            while ((match = ruleRegex.exec(cssPart)) !== null) {
+                const selectors = match[1];
+                const escapedContent = match[2];
+                
+                const unicodeChar = unescapeCssValue(escapedContent);
+                if (!unicodeChar) continue;
 
-            if (!unicode || !selectors.includes(':before')) {
-                continue;
-            }
-
-            const individualSelectors = selectors.split(',');
-
-            for (const selector of individualSelectors) {
-                const classes = selector.match(/\.fa-([a-zA-Z0-9-]+)/g);
-                if (!classes) continue;
-
-                let name = '';
-                let style = 'solid'; // Default style
-
-                for (const cls of classes) {
-                    const cleanClass = cls.substring(1);
-                    
-                    if (['fa-brands', 'fab'].includes(cleanClass)) style = 'brands';
-                    else if (['fa-regular', 'far'].includes(cleanClass)) style = 'regular';
-                    else if (['fa-solid', 'fas'].includes(cleanClass)) style = 'solid';
-                    else name = cleanClass.replace('fa-', '');
-                }
-
-                if (name) {
-                    const fullClassName = `fa-${style} fa-${name}`;
-                    if (!faIcons.some(i => i.class === fullClassName)) {
-                        faIcons.push({ class: fullClassName, unicode, name });
+                const selectorParts = selectors.split(',');
+                for (const s of selectorParts) {
+                    const nameMatch = s.match(/\.fa-([\w-]+)/);
+                    if (nameMatch) {
+                        const name = nameMatch[1];
+                        if (!/^\d+$/.test(name) && name.length > 1) {
+                             faIcons.push({
+                                class: `fa-${style} fa-${name}`,
+                                unicode: unicodeChar,
+                                name: name
+                            });
+                        }
                     }
                 }
             }
-        }
+        };
+        
+        processCssPart(standardCss, 'solid');
+        processCssPart(brandsCss, 'brands');
+        
     } catch (e) {
         console.error("Could not parse Font Awesome stylesheet. Icon picker may be incomplete.", e);
     }
     
-    const uniqueIcons = faIcons.sort((a, b) => a.name.localeCompare(b.name));
+    const uniqueIcons = Array.from(new Map(faIcons.map(icon => [icon.name, icon])).values());
+    uniqueIcons.sort((a, b) => a.name.localeCompare(b.name));
 
     uniqueIcons.forEach(icon => {
         const btn = document.createElement('button');
