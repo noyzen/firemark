@@ -77,6 +77,11 @@ export function updateSettings() {
     const getValue = (elId: string, isInt = false, isFloat = false) => { const el = document.getElementById(elId) as HTMLInputElement; if(!el) return null; if (isInt) return parseInt(el.value, 10) || 0; if (isFloat) return parseFloat(el.value) || 0; return el.value; };
     const isChecked = (elId: string) => (document.getElementById(elId) as HTMLInputElement)?.checked;
     
+    AppState.settings.textsEnabled = isChecked('text-group-enable');
+    AppState.settings.logosEnabled = isChecked('logo-group-enable');
+    AppState.settings.iconsEnabled = isChecked('icon-group-enable');
+    AppState.settings.effectsEnabled = isChecked('effects-group-enable');
+
     AppState.settings.tile = { enabled: isChecked('tile-enable'), useLogo: isChecked('tile-use-logo'), content: getValue('tile-text-content'), fontSize: getValue('tile-font-size', true), opacity: getValue('tile-opacity', false, true), rotation: getValue('tile-rotation', true), spacing: getValue('tile-spacing', true) };
     AppState.settings.pattern = { enabled: isChecked('pattern-enable'), type: getValue('pattern-type'), color1: getValue('pattern-color1'), color2: getValue('pattern-color2'), opacity: getValue('pattern-opacity', false, true), size: getValue('pattern-size', true) };
     AppState.settings.frame = { enabled: isChecked('frame-enable'), style: getValue('frame-style'), color: getValue('frame-color'), width: getValue('frame-width', true), padding: getValue('frame-padding', true) };
@@ -100,6 +105,11 @@ function applySettingsToUI(s: any) {
     const setValue = (id: string, value: any, type = 'value') => { if (value === undefined) return; const el = document.getElementById(id) as any; if (el) el[type] = value; };
     const setChecked = (id: string, value: boolean) => setValue(id, value, 'checked');
     
+    setChecked('text-group-enable', s.textsEnabled ?? true);
+    setChecked('logo-group-enable', s.logosEnabled ?? true);
+    setChecked('icon-group-enable', s.iconsEnabled ?? true);
+    setChecked('effects-group-enable', s.effectsEnabled ?? true);
+
     if (s.tile) { setChecked('tile-enable', s.tile.enabled); setChecked('tile-use-logo', s.tile.useLogo); setValue('tile-text-content', s.tile.content); setValue('tile-font-size', s.tile.fontSize); setValue('tile-opacity', s.tile.opacity); setValue('tile-rotation', s.tile.rotation); setValue('tile-spacing', s.tile.spacing); }
     if (s.pattern) { setChecked('pattern-enable', s.pattern.enabled); setValue('pattern-type', s.pattern.type); setValue('pattern-color1', s.pattern.color1); setValue('pattern-color2', s.pattern.color2); setValue('pattern-opacity', s.pattern.opacity); setValue('pattern-size', s.pattern.size); }
     if (s.frame) { setChecked('frame-enable', s.frame.enabled); setValue('frame-style', s.frame.style); setValue('frame-color', s.frame.color); setValue('frame-width', s.frame.width); setValue('frame-padding', s.frame.padding); }

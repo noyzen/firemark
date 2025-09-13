@@ -52,8 +52,11 @@
         <div class="control-group" id="text-group">
           <button class="group-header collapsible active">
             <h3><i class="fa-solid fa-font"></i> Text Watermarks</h3>
-            <span class="header-indicator"></span>
-            <i class="fa-solid fa-chevron-down collapse-icon"></i>
+            <div class="header-controls">
+                <span class="header-indicator"></span>
+                <label class="toggle-switch"><input type="checkbox" id="text-group-enable" checked><span class="slider"></span></label>
+                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+            </div>
           </button>
           <div class="group-body">
             <div class="layer-manager">
@@ -162,8 +165,11 @@
         <div class="control-group" id="logo-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-regular fa-image"></i> Logo Watermarks</h3>
-                <span class="header-indicator"></span>
-                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                <div class="header-controls">
+                    <span class="header-indicator"></span>
+                    <label class="toggle-switch"><input type="checkbox" id="logo-group-enable" checked><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
             </button>
             <div class="group-body">
               <div class="layer-manager">
@@ -210,8 +216,11 @@
         <div class="control-group" id="icon-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-icons"></i> Icon Watermarks</h3>
-                <span class="header-indicator"></span>
-                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                <div class="header-controls">
+                    <span class="header-indicator"></span>
+                    <label class="toggle-switch"><input type="checkbox" id="icon-group-enable" checked><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
             </button>
             <div class="group-body">
               <div class="layer-manager">
@@ -288,7 +297,7 @@
                 </div>
                 <label for="tile-spacing">Spacing</label>
                 <div class="range-with-value">
-                    <input type="range" id="tile-spacing" min="-100" max="500" value="150">
+                    <input type="range" id="tile-spacing" min="-200" max="500" value="150">
                     <span class="value-display" id="tile-spacing-value">150px</span>
                 </div>
             </div>
@@ -372,10 +381,14 @@
         </div>
 
         <!-- Image Effects -->
-        <div class="control-group">
+        <div class="control-group" id="effects-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Image Effects</h3>
-                <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                <div class="header-controls">
+                    <span class="header-indicator"></span>
+                    <label class="toggle-switch"><input type="checkbox" id="effects-group-enable" checked><span class="slider"></span></label>
+                    <i class="fa-solid fa-chevron-down collapse-icon"></i>
+                </div>
             </button>
             <div class="group-body">
                 <label>Brightness</label>

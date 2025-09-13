@@ -87,13 +87,13 @@ export function drawPreview() {
     previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height); 
     previewCtx.drawImage(img, 0, 0);
     if (previewState.showWatermark) {
-        drawImageEffects(previewCtx, img.width, img.height);
+        if (AppState.settings.effectsEnabled) drawImageEffects(previewCtx, img.width, img.height);
         if (AppState.settings.frame.enabled) drawFrameWatermark(previewCtx, img.width, img.height);
         if (AppState.settings.pattern.enabled) drawPatternWatermark(previewCtx, img.width, img.height);
         if (AppState.settings.tile.enabled) drawTileWatermark(previewCtx, img.width, img.height);
-        AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(previewCtx, img.width, img.height, t) });
-        AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(previewCtx, img.width, img.height, l) });
-        AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(previewCtx, img.width, img.height, i) });
+        if (AppState.settings.textsEnabled) AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(previewCtx, img.width, img.height, t) });
+        if (AppState.settings.logosEnabled) AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(previewCtx, img.width, img.height, l) });
+        if (AppState.settings.iconsEnabled) AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(previewCtx, img.width, img.height, i) });
     }
 }
 

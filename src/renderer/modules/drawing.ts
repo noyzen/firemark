@@ -59,14 +59,14 @@ export async function applyWatermarksToImage(image: { path: string }) {
             // Draw original image and all watermarks/effects onto the full-size canvas
             drawingCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
             
-            drawImageEffects(drawingCtx, originalWidth, originalHeight);
+            if (AppState.settings.effectsEnabled) drawImageEffects(drawingCtx, originalWidth, originalHeight);
             if (AppState.settings.frame.enabled) drawFrameWatermark(drawingCtx, originalWidth, originalHeight); 
             if (AppState.settings.pattern.enabled) drawPatternWatermark(drawingCtx, originalWidth, originalHeight); 
             if (AppState.settings.tile.enabled) drawTileWatermark(drawingCtx, originalWidth, originalHeight);
             
-            AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(drawingCtx, originalWidth, originalHeight, t) });
-            AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(drawingCtx, originalWidth, originalHeight, l) });
-            AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(drawingCtx, originalWidth, originalHeight, i) });
+            if (AppState.settings.textsEnabled) AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(drawingCtx, originalWidth, originalHeight, t) });
+            if (AppState.settings.logosEnabled) AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(drawingCtx, originalWidth, originalHeight, l) });
+            if (AppState.settings.iconsEnabled) AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(drawingCtx, originalWidth, originalHeight, i) });
 
             // Now, handle resizing as the final step
             const { newWidth, newHeight } = getResizedDimensions(originalWidth, originalHeight, AppState.settings.output.resize);

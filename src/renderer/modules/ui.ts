@@ -267,6 +267,12 @@ export function setupCollapsibleGroups() {
 }
 export function toggleControlGroups() {
     const isChecked = (id: string) => (document.getElementById(id) as HTMLInputElement).checked;
+    
+    document.querySelector('#text-group .group-body')!.classList.toggle('disabled', !isChecked('text-group-enable'));
+    document.querySelector('#logo-group .group-body')!.classList.toggle('disabled', !isChecked('logo-group-enable'));
+    document.querySelector('#icon-group .group-body')!.classList.toggle('disabled', !isChecked('icon-group-enable'));
+    document.querySelector('#effects-group .group-body')!.classList.toggle('disabled', !isChecked('effects-group-enable'));
+
     document.getElementById('text-gradient-controls')!.classList.toggle('hidden', !isChecked('text-gradient-enable'));
     document.getElementById('text-stroke-controls')!.classList.toggle('hidden', !isChecked('text-stroke-enable'));
     document.getElementById('text-shadow-controls')!.classList.toggle('hidden', !isChecked('text-shadow-enable'));
@@ -321,7 +327,7 @@ export function updateStartButtonState() {
     (document.getElementById('start-btn') as HTMLButtonElement).disabled = AppState.images.length === 0;
 }
 
-function updateIndicator(groupId: string, countOrState: number | boolean) {
+function updateIndicator(groupId: string, countOrState: number | boolean | undefined) {
     const groupHeader = document.getElementById(groupId)?.querySelector('.group-header');
     if (!groupHeader) return;
     const indicator = groupHeader.querySelector('.header-indicator') as HTMLElement;
@@ -329,9 +335,13 @@ function updateIndicator(groupId: string, countOrState: number | boolean) {
 
     if (typeof countOrState === 'number') {
         indicator.textContent = countOrState > 0 ? `(${countOrState})` : '';
+        indicator.classList.remove('on');
     } else if (typeof countOrState === 'boolean') {
         indicator.textContent = countOrState ? 'On' : '';
         indicator.classList.toggle('on', countOrState);
+    } else {
+        indicator.textContent = '';
+        indicator.classList.remove('on');
     }
 }
 
@@ -342,6 +352,7 @@ export function updateCollapsibleIndicators() {
     updateIndicator('tile-group', AppState.settings.tile?.enabled);
     updateIndicator('pattern-group', AppState.settings.pattern?.enabled);
     updateIndicator('frame-group', AppState.settings.frame?.enabled);
+    updateIndicator('effects-group', AppState.settings.effectsEnabled);
 }
 
 function recenterActiveLayer() {

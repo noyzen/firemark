@@ -26,6 +26,11 @@ export const AppState = {
         texts: [] as any[],
         logos: [] as any[],
         icons: [] as any[],
+        // Fix: Add missing boolean properties to the settings type definition to resolve TypeScript errors.
+        textsEnabled: true,
+        logosEnabled: true,
+        iconsEnabled: true,
+        effectsEnabled: false,
         tile: {} as any,
         pattern: {} as any,
         frame: {} as any,

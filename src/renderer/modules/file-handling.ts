@@ -91,8 +91,8 @@ export async function processImages() {
 
     const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
     if (startBtn.disabled) return;
-
-    const headerActions = document.getElementById('header-actions')!;
+    
+    const clearBtn = document.getElementById('clear-images-btn') as HTMLButtonElement;
     const processingStatus = document.getElementById('processing-status')!;
     const progressContainer = document.getElementById('progress-container')!;
     const completionContainer = document.getElementById('completion-container')!;
@@ -100,10 +100,10 @@ export async function processImages() {
     const progressBarInner = document.getElementById('progress-bar-inner')!;
     
     startBtn.disabled = true;
+    clearBtn.disabled = true;
     startBtn.querySelector('.btn-text')!.textContent = 'Processing...';
     startBtn.querySelector('.btn-spinner')!.classList.remove('hidden');
 
-    headerActions.classList.add('hidden');
     processingStatus.classList.remove('hidden');
     progressContainer.classList.remove('hidden');
     completionContainer.classList.add('hidden');
@@ -126,8 +126,9 @@ export async function processImages() {
     completionContainer.classList.remove('hidden');
     document.getElementById('open-folder-btn')!.addEventListener('click', () => window.api.openFolder(AppState.outputDir!));
 
-    // Reset button state but leave completion message visible
+    // Reset buttons to be active again for another run
     startBtn.disabled = false;
+    clearBtn.disabled = false;
     startBtn.querySelector('.btn-text')!.textContent = 'Start Watermarking';
     startBtn.querySelector('.btn-spinner')!.classList.add('hidden');
 }
