@@ -295,30 +295,50 @@ export function toggleControlGroups() {
     (document.getElementById('resize-height') as HTMLElement).style.display = (mode === 'height' || mode === 'fit') ? 'block' : 'none';
 }
 export async function populatePickers() {
+    const iconGrid = document.getElementById('icon-picker-grid')!;
+    iconGrid.innerHTML = ''; // Clear existing icons first
+
     const faIcons: { class: string; unicode: string; name: string }[] = [];
+
     try {
         const response = await fetch('../../fonts/all.min.css');
         if (!response.ok) throw new Error(`Failed to load Font Awesome CSS: ${response.statusText}`);
         const cssText = await response.text();
         
-        // This regex finds CSS rules that define content for a pseudo-element.
-        // It's broad to capture various minification styles and quotes.
-        const ruleRegex = /([^{}]+?)\s*\{\s*content:\s*['"]\\([a-fA-F0-9]+)['"]/g;
+        // First pass: find all CSS variables for icon content
+        const varMap = new Map<string, string>();
+        const varRegex = /--fa-content-([^:]+):\s*['"]\\([a-fA-F0-9]+)/g;
+        let varMatch;
+        while ((varMatch = varRegex.exec(cssText)) !== null) {
+            const name = varMatch[1];
+            const unicode = String.fromCharCode(parseInt(varMatch[2], 16));
+            varMap.set(`--fa-content-${name}`, unicode);
+        }
+
+        // Second pass: find all icon rules, supporting direct unicode and CSS variables
+        const ruleRegex = /([^{}]+?)\s*\{\s*content:\s*(['"]\\([a-fA-F0-9]+)['"]|var\((--fa-content-[^)]+)\))/g;
         let match;
         
         while ((match = ruleRegex.exec(cssText)) !== null) {
             const selectors = match[1];
-            const unicode = String.fromCharCode(parseInt(match[2], 16));
+            let unicode = '';
 
-            // Only consider selectors with ::before or :before. This prevents matching unrelated `content` properties.
-            if (!selectors.includes('::before') && !selectors.includes(':before')) {
+            if (match[3]) { // Direct unicode match
+                unicode = String.fromCharCode(parseInt(match[3], 16));
+            } else if (match[4]) { // CSS variable match
+                const varName = match[4];
+                if (varMap.has(varName)) {
+                    unicode = varMap.get(varName)!;
+                }
+            }
+
+            if (!unicode || !selectors.includes(':before')) {
                 continue;
             }
 
             const individualSelectors = selectors.split(',');
 
             for (const selector of individualSelectors) {
-                // Extract all `.fa-` classes from the selector string.
                 const classes = selector.match(/\.fa-([a-zA-Z0-9-]+)/g);
                 if (!classes) continue;
 
@@ -326,24 +346,16 @@ export async function populatePickers() {
                 let style = 'solid'; // Default style
 
                 for (const cls of classes) {
-                    const cleanClass = cls.substring(1); // remove leading dot
+                    const cleanClass = cls.substring(1);
                     
-                    // Identify style classes and their aliases (e.g., .fab)
-                    if (['fa-brands', 'fab'].includes(cleanClass)) {
-                        style = 'brands';
-                    } else if (['fa-regular', 'far'].includes(cleanClass)) {
-                        style = 'regular';
-                    } else if (['fa-solid', 'fas'].includes(cleanClass)) {
-                        style = 'solid';
-                    } else {
-                        // Assume it's the icon name class if it's not a style class
-                        name = cleanClass.replace('fa-', '');
-                    }
+                    if (['fa-brands', 'fab'].includes(cleanClass)) style = 'brands';
+                    else if (['fa-regular', 'far'].includes(cleanClass)) style = 'regular';
+                    else if (['fa-solid', 'fas'].includes(cleanClass)) style = 'solid';
+                    else name = cleanClass.replace('fa-', '');
                 }
 
                 if (name) {
                     const fullClassName = `fa-${style} fa-${name}`;
-                    // Use a simple check to prevent duplicates.
                     if (!faIcons.some(i => i.class === fullClassName)) {
                         faIcons.push({ class: fullClassName, unicode, name });
                     }
@@ -356,8 +368,6 @@ export async function populatePickers() {
     
     const uniqueIcons = faIcons.sort((a, b) => a.name.localeCompare(b.name));
 
-    const iconGrid = document.getElementById('icon-picker-grid')!; 
-    iconGrid.innerHTML = '';
     uniqueIcons.forEach(icon => {
         const btn = document.createElement('button');
         btn.innerHTML = `<i class="${icon.class}"></i>`;
@@ -377,13 +387,15 @@ export async function populatePickers() {
 
     const emojiGrid = document.getElementById('emoji-picker-grid')!;
     const textInput = document.getElementById('text-content') as HTMLInputElement;
-    emojis.forEach(emoji => {
-        const btn = document.createElement('button'); btn.textContent = emoji;
-        btn.addEventListener('click', () => {
-            textInput.value += emoji; document.getElementById('emoji-picker-modal')!.classList.add('hidden'); updateSettingsAndPreview();
+    if (emojiGrid.children.length === 0) { // Only populate once
+        emojis.forEach(emoji => {
+            const btn = document.createElement('button'); btn.textContent = emoji;
+            btn.addEventListener('click', () => {
+                textInput.value += emoji; document.getElementById('emoji-picker-modal')!.classList.add('hidden'); updateSettingsAndPreview();
+            });
+            emojiGrid.appendChild(btn);
         });
-        emojiGrid.appendChild(btn);
-    });
+    }
 }
 export function filterIcons(e: Event) {
     const query = (e.target as HTMLInputElement).value.toLowerCase();
