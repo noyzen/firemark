@@ -1,4 +1,5 @@
 
+
 // --- Type definitions for Electron APIs from preload.js ---
 declare global {
     interface Window {
@@ -14,7 +15,7 @@ declare global {
             selectOutputDir: () => Promise<string | null>;
             saveFile: (args: { dataUrl: string; directory: string; originalName: string; format:string }) => Promise<{ success: boolean; path?: string; error?: string }>;
             openFolder: (path: string) => void;
-            // FIX: Add ghostWatermark to the api definition to match the one in index.tsx and fix the type error.
+            // FIX: Added missing 'ghostWatermark' property to sync type declarations.
             ghostWatermark: (args: { dataUrl: string, subtlety: number }) => Promise<{ success: boolean; dataUrl?: string, error?: string }>;
         };
     }

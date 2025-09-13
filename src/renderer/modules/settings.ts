@@ -51,8 +51,6 @@ export function updateSettings() {
             noise: { enabled: isChecked('effect-noise-enable'), amount: getValue('effect-noise-amount', true) },
             sharpen: { enabled: isChecked('effect-sharpen-enable'), amount: getValue('effect-sharpen-amount', false, true) },
         },
-        // FIX: Add aiGhosting settings to complete the feature refactoring.
-        aiGhosting: { enabled: isChecked('ai-ghosting-enable'), subtlety: getValue('ai-ghosting-subtlety', true) },
         output: { format: getValue('output-format'), quality: getValue('output-quality', false, true), resize: { mode: getValue('resize-mode'), width: getValue('resize-width', true), height: getValue('resize-height', true) } }
     };
 
@@ -91,8 +89,6 @@ export function applySettingsToUI(s: any) {
         if(s.effects.noise) { setChecked('effect-noise-enable', s.effects.noise.enabled); setValue('effect-noise-amount', s.effects.noise.amount); }
         if(s.effects.sharpen) { setChecked('effect-sharpen-enable', s.effects.sharpen.enabled); setValue('effect-sharpen-amount', s.effects.sharpen.amount); }
     }
-    // FIX: Add ui logic for aiGhosting settings to complete the feature refactoring.
-    if (s.aiGhosting) { setChecked('ai-ghosting-enable', s.aiGhosting.enabled); setValue('ai-ghosting-subtlety', s.aiGhosting.subtlety); }
     if (s.output) { setValue('output-format', s.output.format); setValue('output-quality', s.output.quality); setValue('resize-mode', s.output.resize.mode); setValue('resize-width', s.output.resize.width); setValue('resize-height', s.output.resize.height); }
 
     updateSettings();

@@ -115,8 +115,6 @@ export function setupRangeValueDisplays() {
         { input: 'frame-width', out: 'frame-width-value', unit: 'px' }, { input: 'frame-padding', out: 'frame-padding-value', unit: 'px' },
         { input: 'effect-brightness', out: 'effect-brightness-value', unit: '%', scale: 100, fixed: 0 }, { input: 'effect-contrast', out: 'effect-contrast-value', unit: '%', scale: 100, fixed: 0 }, { input: 'effect-grayscale', out: 'effect-grayscale-value', unit: '%', scale: 100, fixed: 0 },
         { input: 'effect-blur-radius', out: 'effect-blur-radius-value', unit: 'px' }, { input: 'effect-noise-amount', out: 'effect-noise-amount-value', unit: '%' }, { input: 'effect-sharpen-amount', out: 'effect-sharpen-amount-value', unit: '%' , scale: 100, fixed: 0},
-        // FIX: Add range display for aiGhosting to complete the feature refactoring.
-        { input: 'ai-ghosting-subtlety', out: 'ai-ghosting-subtlety-value', unit: '%' },
         { input: 'output-quality', out: 'output-quality-value', unit: '%', scale: 100, fixed: 0 },
     ];
     ranges.forEach(r => {
@@ -308,18 +306,8 @@ async function processImages() {
         const image = AppState.images[i];
         document.getElementById('progress-text')!.textContent = `Processing ${i + 1} of ${total}: ${image.name}`;
         
-        // FIX: Add AI Ghosting logic to complete the feature refactoring.
-        let dataUrl = await applyWatermarksToImage(image);
+        const dataUrl = await applyWatermarksToImage(image);
         if (dataUrl) {
-            if (AppState.settings.aiGhosting && AppState.settings.aiGhosting.enabled) {
-                document.getElementById('progress-text')!.textContent = `Applying AI Ghosting to ${image.name}...`;
-                const result = await window.api.ghostWatermark({ dataUrl, subtlety: AppState.settings.aiGhosting.subtlety });
-                if (result.success && result.dataUrl) {
-                    dataUrl = result.dataUrl;
-                } else {
-                    console.warn(`AI Ghosting failed for ${image.name}: ${result.error}`);
-                }
-            }
             await window.api.saveFile({ dataUrl, directory: AppState.outputDir!, originalName: image.name, format: AppState.settings.output.format });
         }
         document.getElementById('progress-bar-inner')!.style.width = `${((i + 1) / total) * 100}%`;
