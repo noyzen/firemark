@@ -114,11 +114,11 @@ export function getWatermarkBBox(type: 'texts' | 'logos' | 'icons', layer: any, 
         const tempCtx = document.createElement('canvas').getContext('2d')!;
         
         const iconClass = s.icon.class || '';
-        let fontFamily = '"Font Awesome 6 Free"';
+        let fontFamily = '"Font Awesome 7 Free"';
         let fontWeight = '900'; // solid by default
 
         if (iconClass.includes('fa-brands')) {
-            fontFamily = '"Font Awesome 6 Brands"';
+            fontFamily = '"Font Awesome 7 Brands"';
             fontWeight = '400';
         } else if (iconClass.includes('fa-regular')) {
             fontWeight = '400';
@@ -171,11 +171,11 @@ export function drawSingleLogoWatermark(ctx: CanvasRenderingContext2D, width: nu
 
 export function drawSingleIconWatermark(ctx: CanvasRenderingContext2D, width: number, height: number, s: any) {
     const iconClass = s.icon.class || '';
-    let fontFamily = '"Font Awesome 6 Free"';
+    let fontFamily = '"Font Awesome 7 Free"';
     let fontWeight = '900';
 
     if (iconClass.includes('fa-brands')) {
-        fontFamily = '"Font Awesome 6 Brands"';
+        fontFamily = '"Font Awesome 7 Brands"';
         fontWeight = '400';
     } else if (iconClass.includes('fa-regular')) {
         fontWeight = '400';

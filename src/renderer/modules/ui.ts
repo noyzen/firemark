@@ -107,6 +107,11 @@ export function updateActiveLayerControls() {
     document.getElementById('logo-controls-wrapper')!.classList.toggle('disabled', AppState.activeLayer?.type !== 'logos');
     document.getElementById('icon-controls-wrapper')!.classList.toggle('disabled', AppState.activeLayer?.type !== 'icons');
 
+    const pickerBtnText = document.getElementById('icon-picker-btn-text')!;
+    if (AppState.activeLayer?.type !== 'icons') {
+        pickerBtnText.innerHTML = 'Select Icon...';
+    }
+
     if (!AppState.activeLayer) return;
 
     const { type, id } = AppState.activeLayer;
@@ -148,8 +153,7 @@ export function updateActiveLayerControls() {
         document.getElementById('logo-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     } else if (type === 'icons') {
         const s = layer;
-        const display = document.getElementById('icon-display')!;
-        display.innerHTML = `<i class="${s.icon.class}"></i><span>${s.icon.name}</span>`;
+        pickerBtnText.innerHTML = `<i class="${s.icon.class}" style="margin-right: 8px;"></i> ${s.icon.name}`;
         setValue('icon-size', s.size); setValue('icon-color', s.color); setValue('icon-opacity', s.opacity); setValue('icon-padding', s.padding); setChecked('icon-free-placement', s.freePlacement);
         if(!s.freePlacement && s.position) setPosition('icon-position', s.position);
         document.getElementById('icon-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
@@ -370,9 +374,12 @@ export async function populatePickers() {
         btn.addEventListener('click', () => {
             if (AppState.activeLayer?.type === 'icons') {
                 const layer = AppState.settings.icons.find((l: { id: number; }) => l.id === AppState.activeLayer!.id);
-                if (layer) layer.icon = icon;
-                updateActiveLayerControls();
-                updateSettingsAndPreview();
+                if (layer) {
+                    layer.icon = icon;
+                    renderAllLayerLists();
+                    updateActiveLayerControls();
+                    updateSettingsAndPreview();
+                }
             }
             document.getElementById('icon-picker-modal')!.classList.add('hidden');
         });
