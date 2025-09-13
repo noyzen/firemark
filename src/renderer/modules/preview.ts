@@ -21,14 +21,33 @@ export function openPreview(index: number) {
 }
 
 function getMousePosOnCanvas(e: MouseEvent): { x: number, y: number } {
-    const rect = previewCanvas.getBoundingClientRect();
-    const mouseXInElement = e.clientX - rect.left;
-    const mouseYInElement = e.clientY - rect.top;
+    const container = document.getElementById('preview-canvas-container')!;
+    const containerRect = container.getBoundingClientRect();
+
+    if (!previewState.image) return { x: 0, y: 0 };
+    const img = previewState.image;
+    const displayWidth = img.width * previewState.zoom;
+    const displayHeight = img.height * previewState.zoom;
+
+    // Calculate the top-left corner of the transformed canvas within its container
+    const canvasX = (container.clientWidth - displayWidth) / 2 + previewState.pan.x;
+    const canvasY = (container.clientHeight - displayHeight) / 2 + previewState.pan.y;
+    
+    // Mouse position relative to the container
+    const mouseXInContainer = e.clientX - containerRect.left;
+    const mouseYInContainer = e.clientY - containerRect.top;
+
+    // Mouse position relative to the top-left of the (scaled) canvas content
+    const mouseXOnScaledCanvas = mouseXInContainer - canvasX;
+    const mouseYOnScaledCanvas = mouseYInContainer - canvasY;
+
+    // Mouse position relative to the unscaled canvas content
     return {
-        x: mouseXInElement / previewState.zoom,
-        y: mouseYInElement / previewState.zoom
+        x: mouseXOnScaledCanvas / previewState.zoom,
+        y: mouseYOnScaledCanvas / previewState.zoom
     };
 }
+
 
 function changePreviewImage(offset: number) { 
     let newIndex = previewState.index + offset; 
@@ -79,28 +98,35 @@ export function drawPreview() {
 }
 
 function handlePreviewMouseDown(e: MouseEvent) {
-    const mouse = getMousePosOnCanvas(e);
-    const layerTypes: ('texts' | 'logos' | 'icons')[] = ['texts', 'logos', 'icons'];
-    
-    for (const type of layerTypes) {
-        if(!AppState.settings[type]) continue;
-        for (let i = AppState.settings[type].length - 1; i >= 0; i--) {
-            const layer = AppState.settings[type][i];
-            if (!layer.enabled) continue;
-            
-            const bbox = getWatermarkBBox(type, layer, previewCanvas.width, previewCanvas.height);
-            if (bbox && mouse.x > bbox.x && mouse.x < bbox.x + bbox.w && mouse.y > bbox.y && mouse.y < bbox.y + bbox.h) {
-                previewState.isDragging = { type, id: layer.id };
-                previewState.dragOffset = { x: mouse.x - bbox.x, y: mouse.y - bbox.y };
-                selectLayer(type, layer.id);
-                return;
+    e.preventDefault();
+    if (e.button === 2) { // Right-click for panning
+        previewState.isPanning = true;
+        previewState.startPan = { x: e.clientX - previewState.pan.x, y: e.clientY - previewState.pan.y };
+        return;
+    }
+
+    if (e.button === 0) { // Left-click for dragging
+        const mouse = getMousePosOnCanvas(e);
+        const layerTypes: ('texts' | 'logos' | 'icons')[] = ['texts', 'logos', 'icons'];
+        
+        for (const type of layerTypes) {
+            if(!AppState.settings[type]) continue;
+            for (let i = AppState.settings[type].length - 1; i >= 0; i--) {
+                const layer = AppState.settings[type][i];
+                if (!layer.enabled) continue;
+                
+                const bbox = getWatermarkBBox(type, layer, previewCanvas.width, previewCanvas.height);
+                if (bbox && mouse.x >= bbox.x && mouse.x <= bbox.x + bbox.w && mouse.y >= bbox.y && mouse.y <= bbox.y + bbox.h) {
+                    previewState.isDragging = { type, id: layer.id };
+                    previewState.dragOffset = { x: mouse.x - bbox.x, y: mouse.y - bbox.y };
+                    selectLayer(type, layer.id);
+                    return;
+                }
             }
         }
     }
-
-    previewState.isPanning = true; 
-    previewState.startPan = { x: e.clientX - previewState.pan.x, y: e.clientY - previewState.pan.y };
 }
+
 
 function handlePreviewMouseMove(e: MouseEvent) {
     if (previewState.isDragging) {
@@ -115,15 +141,18 @@ function handlePreviewMouseMove(e: MouseEvent) {
             const bbox = getWatermarkBBox(type, layer, width, height)!;
             if (!bbox) return;
 
+            // newX/Y is the desired top-left corner of the bbox
             const newX = mouse.x - previewState.dragOffset.x;
             const newY = mouse.y - previewState.dragOffset.y;
 
+            // Clamp the position to be within the canvas boundaries
             const clampedX = Math.max(0, Math.min(newX, width - bbox.w));
             const clampedY = Math.max(0, Math.min(newY, height - bbox.h));
 
             layer.position.x = clampedX / width;
             layer.position.y = clampedY / height;
-        } else {
+
+        } else { // Snapping logic
              const xPercent = mouse.x / width;
              const yPercent = mouse.y / height;
              const snapPoints = [0, 0.5, 1];
@@ -140,12 +169,12 @@ function handlePreviewMouseMove(e: MouseEvent) {
     }
 }
 
-function handlePreviewMouseUp() { 
-    if(previewState.isDragging) {
+function handlePreviewMouseUp(e: MouseEvent) {
+    if (e.button === 0 && previewState.isDragging) { // Left-click release after drag
         updateSettingsAndPreview();
     }
-    previewState.isPanning = false; 
-    previewState.isDragging = null; 
+    previewState.isPanning = false;
+    previewState.isDragging = null;
 }
 
 function handlePreviewWheel(e: WheelEvent) { 
@@ -164,9 +193,12 @@ export function setupPreviewListeners() {
     toggleBtn.addEventListener('mousedown', () => { previewState.showWatermark = false; drawPreview(); });
     toggleBtn.addEventListener('mouseup', () => { previewState.showWatermark = true; drawPreview(); });
     toggleBtn.addEventListener('mouseleave', () => { previewState.showWatermark = true; drawPreview(); });
+    
     previewCanvas.addEventListener('mousedown', handlePreviewMouseDown); 
-    previewCanvas.addEventListener('mousemove', handlePreviewMouseMove); 
-    previewCanvas.addEventListener('mouseup', handlePreviewMouseUp);
-    previewCanvas.addEventListener('mouseleave', handlePreviewMouseUp); 
+    window.addEventListener('mousemove', handlePreviewMouseMove); 
+    window.addEventListener('mouseup', handlePreviewMouseUp);
+    
     previewCanvas.addEventListener('wheel', handlePreviewWheel, { passive: false });
+    // Prevent context menu on right-click
+    previewCanvas.addEventListener('contextmenu', e => e.preventDefault());
 }
