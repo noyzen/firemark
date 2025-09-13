@@ -1,12 +1,32 @@
 import { AppState } from './state';
 
 export function getResizedDimensions(originalWidth: number, originalHeight: number, resizeSettings: any) {
-    const { mode, width, height } = resizeSettings; if (mode === 'none' || !mode) return { newWidth: originalWidth, newHeight: originalHeight };
-    const ratio = originalWidth / originalHeight; let newWidth = originalWidth, newHeight = originalHeight;
+    const { mode, width, height } = resizeSettings;
+    if (mode === 'none' || !mode) {
+        return { newWidth: originalWidth, newHeight: originalHeight };
+    }
+
+    const ratio = originalWidth / originalHeight;
+    let newWidth = originalWidth, newHeight = originalHeight;
+
     switch (mode) {
-        case 'width': if (originalWidth > width) { newWidth = width; newHeight = newWidth / ratio; } break;
-        case 'height': if (originalHeight > height) { newHeight = height; newWidth = newHeight * ratio; } break;
-        case 'fit': if (originalWidth > width || originalHeight > height) { if (ratio > (width / height)) { newWidth = width; newHeight = newWidth / ratio; } else { newHeight = height; newWidth = newHeight * ratio; } } break;
+        case 'width':
+            newWidth = width;
+            newHeight = newWidth / ratio;
+            break;
+        case 'height':
+            newHeight = height;
+            newWidth = newHeight * ratio;
+            break;
+        case 'fit':
+            if (ratio > (width / height)) {
+                newWidth = width;
+                newHeight = newWidth / ratio;
+            } else {
+                newHeight = height;
+                newWidth = newHeight * ratio;
+            }
+            break;
     }
     return { newWidth: Math.round(newWidth), newHeight: Math.round(newHeight) };
 }
@@ -25,20 +45,48 @@ export function getPositionCoords(pos: { x: number, y: number }, w: number, h: n
 
 export async function applyWatermarksToImage(image: { path: string }) {
     return new Promise<string | null>((resolve) => {
-        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d', { willReadFrequently: true })!; const img = new Image(); img.crossOrigin = 'Anonymous';
+        const drawingCanvas = document.createElement('canvas');
+        const drawingCtx = drawingCanvas.getContext('2d', { willReadFrequently: true })!;
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+
         img.onload = async () => {
-            const { newWidth, newHeight } = getResizedDimensions(img.width, img.height, AppState.settings.output.resize); canvas.width = newWidth; canvas.height = newHeight;
-            ctx.drawImage(img, 0, 0, newWidth, newHeight);
-            drawImageEffects(ctx, newWidth, newHeight);
-            if (AppState.settings.frame.enabled) drawFrameWatermark(ctx, newWidth, newHeight); 
-            if (AppState.settings.pattern.enabled) drawPatternWatermark(ctx, newWidth, newHeight); 
-            if (AppState.settings.tile.enabled) drawTileWatermark(ctx, newWidth, newHeight);
+            const originalWidth = img.width;
+            const originalHeight = img.height;
+            drawingCanvas.width = originalWidth;
+            drawingCanvas.height = originalHeight;
             
-            AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(ctx, newWidth, newHeight, t) });
-            AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(ctx, newWidth, newHeight, l) });
-            AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(ctx, newWidth, newHeight, i) });
+            // Draw original image and all watermarks/effects onto the full-size canvas
+            drawingCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
             
-            resolve(canvas.toDataURL(`image/${AppState.settings.output.format}`, AppState.settings.output.quality));
+            drawImageEffects(drawingCtx, originalWidth, originalHeight);
+            if (AppState.settings.frame.enabled) drawFrameWatermark(drawingCtx, originalWidth, originalHeight); 
+            if (AppState.settings.pattern.enabled) drawPatternWatermark(drawingCtx, originalWidth, originalHeight); 
+            if (AppState.settings.tile.enabled) drawTileWatermark(drawingCtx, originalWidth, originalHeight);
+            
+            AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(drawingCtx, originalWidth, originalHeight, t) });
+            AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(drawingCtx, originalWidth, originalHeight, l) });
+            AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(drawingCtx, originalWidth, originalHeight, i) });
+
+            // Now, handle resizing as the final step
+            const { newWidth, newHeight } = getResizedDimensions(originalWidth, originalHeight, AppState.settings.output.resize);
+            
+            // If no resize is necessary, resolve with the current canvas
+            if (newWidth === originalWidth && newHeight === originalHeight) {
+                resolve(drawingCanvas.toDataURL(`image/${AppState.settings.output.format}`, AppState.settings.output.quality));
+                return;
+            }
+
+            // Create a new canvas for the final resized output
+            const outputCanvas = document.createElement('canvas');
+            const outputCtx = outputCanvas.getContext('2d')!;
+            outputCanvas.width = newWidth;
+            outputCanvas.height = newHeight;
+            
+            // Draw the watermarked canvas onto the output canvas, which performs the scaling
+            outputCtx.drawImage(drawingCanvas, 0, 0, newWidth, newHeight);
+            
+            resolve(outputCanvas.toDataURL(`image/${AppState.settings.output.format}`, AppState.settings.output.quality));
         };
         img.onerror = () => resolve(null); img.src = image.path;
     });
