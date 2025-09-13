@@ -1,4 +1,4 @@
-import { getAppState } from './state';
+import { getAppState, setAppState } from './state';
 import { drawImageEffects, drawFrameWatermark, drawPatternWatermark, drawTileWatermark, drawTextWatermark, drawLogoWatermark, drawIconWatermark, getPositionCoords } from './drawing';
 
 // --- Preview Modal State & Elements ---
@@ -116,7 +116,11 @@ function changeZoom(factor: number) {
 function resetZoomAndPan() {
     if (!previewState.image) return;
     const container = document.getElementById('preview-canvas-container')!;
-    const scale = Math.min(container.clientWidth / previewState.image.width, container.clientHeight / previewState.image.height) * 0.95;
+    // Calculate the best fit scale and ensure it's not zero
+    const scaleX = container.clientWidth / previewState.image.width;
+    const scaleY = container.clientHeight / previewState.image.height;
+    const scale = Math.min(scaleX, scaleY) * 0.95 || 1;
+
     previewState.zoom = scale;
     previewState.pan = { x: 0, y: 0 };
     drawPreview();
@@ -186,8 +190,11 @@ function handlePreviewMouseMove(e: MouseEvent) {
         const newX = mouse.x - previewState.dragOffset.x;
         const newY = mouse.y - previewState.dragOffset.y;
 
-        AppState.settings[type].position.x = (newX - padding) / (previewCanvas.width - bbox.w - padding * 2);
-        AppState.settings[type].position.y = (newY - padding) / (previewCanvas.height - bbox.h - padding * 2);
+        const safeWidth = previewCanvas.width - bbox.w - padding * 2;
+        const safeHeight = previewCanvas.height - bbox.h - padding * 2;
+
+        AppState.settings[type].position.x = safeWidth > 0 ? (newX - padding) / safeWidth : 0.5;
+        AppState.settings[type].position.y = safeHeight > 0 ? (newY - padding) / safeHeight : 0.5;
 
         AppState.settings[type].position.x = Math.max(0, Math.min(1, AppState.settings[type].position.x));
         AppState.settings[type].position.y = Math.max(0, Math.min(1, AppState.settings[type].position.y));
@@ -202,6 +209,9 @@ function handlePreviewMouseMove(e: MouseEvent) {
 
 function handlePreviewMouseUp() {
     previewState.isPanning = false;
+    if (previewState.isDragging) {
+        setAppState({ settings: getAppState().settings }); // Trigger settings save
+    }
     previewState.isDragging = null;
 }
 

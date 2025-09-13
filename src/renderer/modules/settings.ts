@@ -1,6 +1,7 @@
 
-import { getAppState, SETTINGS_KEY, PRESETS_PREFIX } from './state';
-import { updateSettingsAndPreview, toggleControlGroups } from './ui';
+
+import { getAppState, setAppState, SETTINGS_KEY, PRESETS_PREFIX } from './state';
+import { updateSettingsAndPreview, setupRangeValueDisplays, toggleControlGroups } from './ui';
 
 let settingsUpdateTimeout: number;
 
@@ -10,7 +11,7 @@ export function updateSettings() {
     
     const getPosition = (containerId: string) => {
         const activeBtn = document.querySelector(`#${containerId} button.active`) as HTMLElement;
-        if (!activeBtn) return { x: 0.5, y: 0.5 };
+        if (!activeBtn) return AppState.settings[containerId.split('-')[0]]?.position || { x: 0.5, y: 0.5 };
         const pos = activeBtn.dataset.position!;
         const map: { [key: string]: { x: number, y: number } } = {
             'top-left': { x: 0, y: 0 }, 'top-center': { x: 0.5, y: 0 }, 'top-right': { x: 1, y: 0 },
@@ -21,42 +22,43 @@ export function updateSettings() {
     };
     const getValue = (id: string, isInt = false, isFloat = false) => {
         const el = document.getElementById(id) as HTMLInputElement;
+        if (!el) return 0;
         if (isInt) return parseInt(el.value, 10) || 0;
         if (isFloat) return parseFloat(el.value) || 0;
         return el.value;
     };
-    const isChecked = (id: string) => (document.getElementById(id) as HTMLInputElement).checked;
-    const isActive = (id: string) => document.getElementById(id)!.classList.contains('active');
+    const isChecked = (id: string) => (document.getElementById(id) as HTMLInputElement)?.checked ?? false;
+    const isActive = (id: string) => document.getElementById(id)?.classList.contains('active') ?? false;
 
-    AppState.settings = {
-        text: {
-            enabled: isChecked('text-enable'), content: getValue('text-content'), fontFamily: getValue('text-font-family'),
-            fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'),
-            align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left',
-            lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true),
-            padding: getValue('text-padding', true),
-            gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') },
-            stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) },
-            shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) },
-            position: AppState.settings.text?.position || getPosition('text-position'),
-        },
-        logo: { enabled: isChecked('logo-enable'), size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: AppState.settings.logo?.position || getPosition('logo-position') },
-        icon: { enabled: isChecked('icon-enable'), size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: AppState.settings.icon?.position || getPosition('icon-position') },
-        tile: { enabled: isChecked('tile-enable'), useLogo: isChecked('tile-use-logo'), content: getValue('tile-text-content'), fontSize: getValue('tile-font-size', true), opacity: getValue('tile-opacity', false, true), rotation: getValue('tile-rotation', true), spacing: getValue('tile-spacing', true) },
-        pattern: { enabled: isChecked('pattern-enable'), type: getValue('pattern-type'), color1: getValue('pattern-color1'), color2: getValue('pattern-color2'), opacity: getValue('pattern-opacity', false, true), size: getValue('pattern-size', true) },
-        frame: { enabled: isChecked('frame-enable'), style: getValue('frame-style'), color: getValue('frame-color'), width: getValue('frame-width', true), padding: getValue('frame-padding', true) },
-        effects: {
-            brightness: getValue('effect-brightness', false, true), contrast: getValue('effect-contrast', false, true), grayscale: getValue('effect-grayscale', false, true),
-            blur: { enabled: isChecked('effect-blur-enable'), radius: getValue('effect-blur-radius', false, true) },
-            noise: { enabled: isChecked('effect-noise-enable'), amount: getValue('effect-noise-amount', true) },
-            sharpen: { enabled: isChecked('effect-sharpen-enable'), amount: getValue('effect-sharpen-amount', false, true) },
-        },
-        output: { format: getValue('output-format'), quality: getValue('output-quality', false, true), resize: { mode: getValue('resize-mode'), width: getValue('resize-width', true), height: getValue('resize-height', true) } }
-    };
-
-    if (document.querySelector('#text-position .active')) AppState.settings.text.position = getPosition('text-position');
-    if (document.querySelector('#logo-position .active')) AppState.settings.logo.position = getPosition('logo-position');
-    if (document.querySelector('#icon-position .active')) AppState.settings.icon.position = getPosition('icon-position');
+    setAppState({
+        settings: {
+            text: {
+                enabled: isChecked('text-enable'), content: getValue('text-content'), fontFamily: getValue('text-font-family'),
+                fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'),
+                align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left',
+                lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true),
+                padding: getValue('text-padding', true),
+                gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') },
+                stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) },
+                shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) },
+                position: getPosition('text-position'),
+            },
+            logo: { enabled: isChecked('logo-enable'), size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: getPosition('logo-position') },
+            icon: { enabled: isChecked('icon-enable'), size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: getPosition('icon-position') },
+            tile: { enabled: isChecked('tile-enable'), useLogo: isChecked('tile-use-logo'), content: getValue('tile-text-content'), fontSize: getValue('tile-font-size', true), opacity: getValue('tile-opacity', false, true), rotation: getValue('tile-rotation', true), spacing: getValue('tile-spacing', true) },
+            pattern: { enabled: isChecked('pattern-enable'), type: getValue('pattern-type'), color1: getValue('pattern-color1'), color2: getValue('pattern-color2'), opacity: getValue('pattern-opacity', false, true), size: getValue('pattern-size', true) },
+            frame: { enabled: isChecked('frame-enable'), style: getValue('frame-style'), color: getValue('frame-color'), width: getValue('frame-width', true), padding: getValue('frame-padding', true) },
+            effects: {
+                brightness: getValue('effect-brightness', false, true), contrast: getValue('effect-contrast', false, true), grayscale: getValue('effect-grayscale', false, true),
+                blur: { enabled: isChecked('effect-blur-enable'), radius: getValue('effect-blur-radius', false, true) },
+                noise: { enabled: isChecked('effect-noise-enable'), amount: getValue('effect-noise-amount', true) },
+                sharpen: { enabled: isChecked('effect-sharpen-enable'), amount: getValue('effect-sharpen-amount', false, true) },
+            },
+            // Preserve AI ghosting settings from old index.tsx, even if no UI exists for it yet
+            aiGhosting: AppState.settings.aiGhosting || { enabled: false, subtlety: 50 },
+            output: { format: getValue('output-format'), quality: getValue('output-quality', false, true), resize: { mode: getValue('resize-mode'), width: getValue('resize-width', true), height: getValue('resize-height', true) } }
+        }
+    });
 }
 
 export function applySettingsToUI(s: any) {
@@ -65,8 +67,11 @@ export function applySettingsToUI(s: any) {
     const setChecked = (id: string, value: boolean) => setValue(id, value, 'checked');
     const setActive = (id: string, value: boolean) => document.getElementById(id)?.classList.toggle('active', !!value);
     const setPosition = (id: string, pos: { x: number, y: number }) => {
+        if (!pos) return;
         document.querySelectorAll(`#${id} button`).forEach(b => b.classList.remove('active'));
-        const posStr = `${pos.y === 0 ? 'top' : pos.y === 0.5 ? 'center' : 'bottom'}-${pos.x === 0 ? 'left' : pos.x === 0.5 ? 'center' : 'right'}`;
+        const yStr = pos.y < 0.25 ? 'top' : pos.y > 0.75 ? 'bottom' : 'center';
+        const xStr = pos.x < 0.25 ? 'left' : pos.x > 0.75 ? 'right' : 'center';
+        const posStr = `${yStr}-${xStr}`;
         document.querySelector(`#${id} button[data-position="${posStr}"]`)?.classList.add('active');
     };
 
@@ -76,10 +81,10 @@ export function applySettingsToUI(s: any) {
         if(s.text.gradient) { setChecked('text-gradient-enable', s.text.gradient.enabled); setValue('text-gradient-color', s.text.gradient.color); setValue('text-gradient-direction', s.text.gradient.direction); }
         if(s.text.stroke) { setChecked('text-stroke-enable', s.text.stroke.enabled); setValue('text-stroke-color', s.text.stroke.color); setValue('text-stroke-width', s.text.stroke.width); }
         if(s.text.shadow) { setChecked('text-shadow-enable', s.text.shadow.enabled); setValue('text-shadow-color', s.text.shadow.color); setValue('text-shadow-blur', s.text.shadow.blur); }
-        if(s.text.position) setPosition('text-position', s.text.position);
+        setPosition('text-position', s.text.position);
     }
-    if (s.logo) { setChecked('logo-enable', s.logo.enabled); setValue('logo-size', s.logo.size); setValue('logo-opacity', s.logo.opacity); setValue('logo-padding', s.logo.padding); if(s.logo.position) setPosition('logo-position', s.logo.position); }
-    if (s.icon) { setChecked('icon-enable', s.icon.enabled); setValue('icon-size', s.icon.size); setValue('icon-color', s.icon.color); setValue('icon-opacity', s.icon.opacity); setValue('icon-padding', s.icon.padding); if(s.icon.position) setPosition('icon-position', s.icon.position); }
+    if (s.logo) { setChecked('logo-enable', s.logo.enabled); setValue('logo-size', s.logo.size); setValue('logo-opacity', s.logo.opacity); setValue('logo-padding', s.logo.padding); setPosition('logo-position', s.logo.position); }
+    if (s.icon) { setChecked('icon-enable', s.icon.enabled); setValue('icon-size', s.icon.size); setValue('icon-color', s.icon.color); setValue('icon-opacity', s.icon.opacity); setValue('icon-padding', s.icon.padding); setPosition('icon-position', s.icon.position); }
     if (s.tile) { setChecked('tile-enable', s.tile.enabled); setChecked('tile-use-logo', s.tile.useLogo); setValue('tile-text-content', s.tile.content); setValue('tile-font-size', s.tile.fontSize); setValue('tile-opacity', s.tile.opacity); setValue('tile-rotation', s.tile.rotation); setValue('tile-spacing', s.tile.spacing); }
     if (s.pattern) { setChecked('pattern-enable', s.pattern.enabled); setValue('pattern-type', s.pattern.type); setValue('pattern-color1', s.pattern.color1); setValue('pattern-color2', s.pattern.color2); setValue('pattern-opacity', s.pattern.opacity); setValue('pattern-size', s.pattern.size); }
     if (s.frame) { setChecked('frame-enable', s.frame.enabled); setValue('frame-style', s.frame.style); setValue('frame-color', s.frame.color); setValue('frame-width', s.frame.width); setValue('frame-padding', s.frame.padding); }
@@ -91,7 +96,10 @@ export function applySettingsToUI(s: any) {
     }
     if (s.output) { setValue('output-format', s.output.format); setValue('output-quality', s.output.quality); setValue('resize-mode', s.output.resize.mode); setValue('resize-width', s.output.resize.width); setValue('resize-height', s.output.resize.height); }
 
-    updateSettings();
+    // After applying all settings, update UI states
+    toggleControlGroups(); // Manages visibility of conditional controls
+    setupRangeValueDisplays(); // Updates all range slider text values
+    updateSettings(); // Syncs the AppState with the new UI state
 }
 
 // --- Persistent Settings ---
@@ -166,7 +174,6 @@ export function applyPreset(e: Event) {
         if (settingsJSON) {
             const settings = JSON.parse(settingsJSON);
             applySettingsToUI(settings);
-            toggleControlGroups();
         }
     }
 }

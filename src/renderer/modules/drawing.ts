@@ -29,8 +29,8 @@ export function getResizedDimensions(originalWidth: number, originalHeight: numb
 }
 
 export function getPositionCoords(pos: { x: number, y: number }, w: number, h: number, elementWidth: number, elementHeight: number, padding = 20) {
-    let x = pos.x * (w - elementWidth) + (pos.x * -2 + 1) * padding;
-    let y = pos.y * (h - elementHeight) + (pos.y * -2 + 1) * padding;
+    let x = pos.x * (w - elementWidth - padding * 2) + padding;
+    let y = pos.y * (h - elementHeight - padding * 2) + padding;
     return { x, y };
 }
 
@@ -73,9 +73,8 @@ export function drawTextWatermark(ctx: CanvasRenderingContext2D, width: number, 
     const lineHeight = s.fontSize * s.lineHeight;
     const metrics = lines.map(line => ctx.measureText(line));
     const maxTextWidth = Math.max(...metrics.map(m => m.width));
-    // FIX: Correctly calculate total height for multi-line text to match preview logic.
-    // This ensures consistent positioning between the live preview and the final output.
-    const totalTextHeight = lines.length > 0 ? (lines.length - 1) * lineHeight + s.fontSize : 0;
+    // Correctly calculate total height for multi-line text to match preview logic
+    const totalTextHeight = (lines.length -1) * lineHeight + s.fontSize;
     
     let { x, y } = getPositionCoords(s.position, width, height, maxTextWidth, totalTextHeight, s.padding);
 
@@ -189,6 +188,9 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
     const s = getAppState().settings.pattern;
     ctx.globalAlpha = s.opacity;
     const size = s.size;
+    ctx.fillStyle = s.color1;
+    ctx.strokeStyle = s.color1;
+
     switch(s.type) {
         case 'checker':
             for(let y = 0; y < height; y += size) {
@@ -199,7 +201,6 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
             }
             break;
         case 'lines':
-            ctx.strokeStyle = s.color1;
             ctx.lineWidth = size / 10;
             for(let i = -height; i < width; i += size) {
                 ctx.beginPath();
@@ -209,7 +210,6 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
             }
             break;
         case 'cross':
-            ctx.strokeStyle = s.color1;
             ctx.lineWidth = size / 20;
             for(let i = 0; i < width; i += size) {
                 ctx.beginPath();
@@ -224,6 +224,46 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
                 ctx.stroke();
             }
             break;
+        case 'dots':
+            const radius = size / 4;
+            for (let y = size / 2; y < height; y += size) {
+                for (let x = size / 2; x < width; x += size) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            break;
+        case 'honeycomb':
+            const hexRadius = size / 2;
+            const hexHeight = Math.sqrt(3) * hexRadius;
+            ctx.lineWidth = Math.max(1, size / 10);
+            for (let row = 0; row * hexHeight / 2 < height + hexHeight; row++) {
+                for (let col = 0; col * 1.5 * hexRadius < width + hexRadius; col++) {
+                    const x = col * 1.5 * hexRadius;
+                    const y = row * hexHeight / 2;
+                    if ((col % 2) !== (row % 2)) continue;
+                    ctx.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        ctx.lineTo(x + hexRadius * Math.cos(i * Math.PI / 3), y + hexRadius * Math.sin(i * Math.PI / 3));
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            }
+            break;
+        case 'zigzag':
+            ctx.lineWidth = Math.max(1, size / 8);
+            for(let y = 0; y < height + size; y += size) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                for(let x = 0; x < width + size; x += size) {
+                    ctx.lineTo(x + size/2, y + size/2);
+                    ctx.lineTo(x + size, y);
+                }
+                ctx.stroke();
+            }
+            break;
     }
     ctx.globalAlpha = 1.0;
 }
@@ -233,11 +273,19 @@ export function drawFrameWatermark(ctx: CanvasRenderingContext2D, width: number,
     const p = s.padding;
     ctx.strokeStyle = s.color;
     ctx.lineWidth = s.width;
+
+    ctx.setLineDash([]); // Reset to solid
+    if(s.style === 'dotted') ctx.setLineDash([s.width, s.width * 1.5]);
+    if(s.style === 'dashed') ctx.setLineDash([s.width * 3, s.width * 2]);
+    
     ctx.strokeRect(p, p, width - p*2, height - p*2);
+    
     if (s.style === 'double') {
-        const p2 = p + s.width + 5;
+        ctx.setLineDash([]); // Double is always solid
+        const p2 = p + s.width + Math.max(5, s.width);
         ctx.strokeRect(p2, p2, width - p2*2, height - p2*2);
     }
+    ctx.setLineDash([]); // Reset for other drawing operations
 }
 
 export function drawImageEffects(ctx: CanvasRenderingContext2D, width: number, height: number) {
@@ -250,7 +298,8 @@ export function drawImageEffects(ctx: CanvasRenderingContext2D, width: number, h
 
     if (filterString.trim() !== '') {
         ctx.filter = filterString;
-        ctx.drawImage(ctx.canvas, 0, 0);
+        // Draw the image with filter onto itself
+        ctx.drawImage(ctx.canvas, 0, 0, width, height, 0, 0, width, height);
         ctx.filter = 'none';
     }
 
@@ -267,15 +316,28 @@ export function drawImageEffects(ctx: CanvasRenderingContext2D, width: number, h
         ctx.putImageData(imageData, 0, 0);
     }
     if (s.sharpen.enabled && s.sharpen.amount > 0) {
-        // This is a simplified sharpen effect and might have artifacts.
-        // A proper convolution kernel would be better but more complex.
-        ctx.globalAlpha = s.sharpen.amount * 0.5;
-        ctx.filter = `blur(${Math.max(1, 20 - s.sharpen.amount * 10)}px)`;
-        ctx.drawImage(ctx.canvas, 0, 0, width, height);
-        ctx.filter = 'none';
-        ctx.globalCompositeOperation = 'difference';
-        ctx.drawImage(ctx.canvas, 0, 0, width, height);
-        ctx.globalCompositeOperation = 'screen';
-        ctx.globalAlpha = 1;
+        // This is a simplified sharpen effect (Unsharp Mask)
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        const tempCtx = tempCanvas.getContext('2d')!;
+        
+        // 1. Create blurred version
+        tempCtx.filter = `blur(${s.sharpen.amount * 2}px)`;
+        tempCtx.drawImage(ctx.canvas, 0, 0);
+        
+        // 2. Subtract blurred from original
+        tempCtx.globalCompositeOperation = 'difference';
+        tempCtx.drawImage(ctx.canvas, 0, 0);
+        
+        // 3. Add the difference back to the original
+        // FIX: 'add' is not a valid globalCompositeOperation. 'lighter' is the correct value for an additive blend.
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = s.sharpen.amount;
+        ctx.drawImage(tempCanvas, 0, 0);
+        
+        // Reset context
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1.0;
     }
 }

@@ -39,7 +39,9 @@
             </button>
             <div class="group-body">
                 <div class="presets-group">
-                    <select id="presets-select"><option value="">Select a preset...</option></select>
+                    <div class="custom-select">
+                        <select id="presets-select"><option value="">Select a preset...</option></select>
+                    </div>
                     <button id="preset-save-btn" class="button-icon" title="Save Current Settings"><i class="fa-solid fa-save"></i></button>
                     <button id="preset-delete-btn" class="button-icon" title="Delete Selected Preset"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -63,20 +65,22 @@
             </div>
             
             <label for="text-font-family">Font</label>
-            <select id="text-font-family">
-                <optgroup label="Sans-serif">
-                    <option selected>Arial</option><option>Verdana</option><option>Helvetica</option><option>Roboto</option><option>Inter</option><option>Calibri</option><option>Gill Sans</option><option>Futura</option>
-                </optgroup>
-                <optgroup label="Serif">
-                    <option>Times New Roman</option><option>Georgia</option><option>Garamond</option><option>Baskerville</option>
-                </optgroup>
-                <optgroup label="Monospace">
-                    <option>Courier New</option><option>Lucida Console</option><option>Monaco</option>
-                </optgroup>
-                 <optgroup label="Display">
-                    <option>Impact</option><option>Brush Script MT</option>
-                </optgroup>
-            </select>
+            <div class="custom-select">
+                <select id="text-font-family">
+                    <optgroup label="Sans-serif">
+                        <option selected>Arial</option><option>Verdana</option><option>Helvetica</option><option>Roboto</option><option>Inter</option><option>Calibri</option><option>Gill Sans</option><option>Futura</option><option>Tahoma</option><option>Trebuchet MS</option><option>Lato</option><option>Open Sans</option>
+                    </optgroup>
+                    <optgroup label="Serif">
+                        <option>Times New Roman</option><option>Georgia</option><option>Garamond</option><option>Baskerville</option><option>Palatino</option><option>Merriweather</option>
+                    </optgroup>
+                    <optgroup label="Monospace">
+                        <option>Courier New</option><option>Lucida Console</option><option>Monaco</option><option>Consolas</option><option>Source Code Pro</option>
+                    </optgroup>
+                     <optgroup label="Display & Script">
+                        <option>Impact</option><option>Brush Script MT</option><option>Lobster</option><option>Pacifico</option><option>Comic Sans MS</option>
+                    </optgroup>
+                </select>
+            </div>
             <label>Font Size, Style & Alignment</label>
             <div class="inline-controls">
               <input type="number" id="text-font-size" value="48" min="8">
@@ -105,9 +109,11 @@
             </label>
             <div id="text-gradient-controls" class="sub-group hidden">
                 <input type="color" id="text-gradient-color" value="#4a90e2" title="Gradient End Color">
-                <select id="text-gradient-direction">
-                    <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
-                </select>
+                <div class="custom-select">
+                    <select id="text-gradient-direction">
+                        <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
+                    </select>
+                </div>
             </div>
             <label class="group-header sub-header">
                 <span>Stroke (Outline)</span><label class="toggle-switch"><input type="checkbox" id="text-stroke-enable"><span class="slider"></span></label>
@@ -263,11 +269,16 @@
             </button>
             <div class="group-body">
                 <label for="pattern-type">Pattern Type</label>
-                <select id="pattern-type">
-                    <option value="checker">Checkerboard</option>
-                    <option value="lines">Diagonal Lines</option>
-                    <option value="cross">Crosshatch</option>
-                </select>
+                <div class="custom-select">
+                    <select id="pattern-type">
+                        <option value="checker">Checkerboard</option>
+                        <option value="lines">Diagonal Lines</option>
+                        <option value="cross">Crosshatch</option>
+                        <option value="dots">Dots</option>
+                        <option value="honeycomb">Honeycomb</option>
+                        <option value="zigzag">Zigzag</option>
+                    </select>
+                </div>
                 <label for="pattern-color1">Colors & Opacity</label>
                 <div class="color-opacity">
                     <input type="color" id="pattern-color1" value="#000000" title="Primary Color">
@@ -294,10 +305,14 @@
             </button>
             <div class="group-body">
                 <label for="frame-style">Style</label>
-                <select id="frame-style">
-                    <option value="single">Single</option>
-                    <option value="double">Double</option>
-                </select>
+                <div class="custom-select">
+                    <select id="frame-style">
+                        <option value="single">Single</option>
+                        <option value="double">Double</option>
+                        <option value="dotted">Dotted</option>
+                        <option value="dashed">Dashed</option>
+                    </select>
+                </div>
                 <label for="frame-color">Color</label>
                 <input type="color" id="frame-color" value="#FFFFFF">
                 <label for="frame-width">Thickness</label>
@@ -345,11 +360,13 @@
             <button id="output-dir-btn" class="button-secondary">Select Output Folder</button>
             <p id="output-dir-path">No folder selected</p>
             <label for="output-format">Format</label>
-            <select id="output-format">
-              <option value="png">PNG</option>
-              <option value="jpeg">JPEG</option>
-              <option value="webp">WebP</option>
-            </select>
+            <div class="custom-select">
+                <select id="output-format">
+                  <option value="png">PNG</option>
+                  <option value="jpeg">JPEG</option>
+                  <option value="webp">WebP</option>
+                </select>
+            </div>
             <div id="quality-control" class="hidden">
               <label for="output-quality">Quality</label>
               <div class="range-with-value">
@@ -358,12 +375,14 @@
               </div>
             </div>
             <label for="resize-mode">Resize</label>
-            <select id="resize-mode">
-                <option value="none">None</option>
-                <option value="width">Max Width</option>
-                <option value="height">Max Height</option>
-                <option value="fit">Max Dimensions</option>
-            </select>
+            <div class="custom-select">
+                <select id="resize-mode">
+                    <option value="none">None</option>
+                    <option value="width">Max Width</option>
+                    <option value="height">Max Height</option>
+                    <option value="fit">Max Dimensions</option>
+                </select>
+            </div>
             <div id="resize-controls" class="inline-controls hidden">
                 <input type="number" id="resize-width" placeholder="Width" value="1920">
                 <input type="number" id="resize-height" placeholder="Height" value="1080">

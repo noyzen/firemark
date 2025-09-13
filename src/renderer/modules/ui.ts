@@ -1,6 +1,7 @@
 
-import { getAppState, faIcons, emojis } from './state';
-import { updateSettings, debouncedSave, openSavePresetModal, savePreset, applyPreset, openDeletePresetModal, deletePreset } from './settings';
+
+import { getAppState, setAppState, faIcons, emojis } from './state';
+import { updateSettings, openSavePresetModal, savePreset, applyPreset, openDeletePresetModal, deletePreset } from './settings';
 import { applyWatermarksToImage } from './drawing';
 import { isPreviewVisible, drawPreview, setupPreviewModalListeners, openPreview } from './preview';
 
@@ -10,7 +11,6 @@ export function updateSettingsAndPreview() {
     if (isPreviewVisible()) {
         drawPreview();
     }
-    debouncedSave();
 }
 
 // --- Window Controls ---
@@ -138,17 +138,13 @@ export function setupCollapsibleGroups() {
 
         const updateMaxHeight = () => {
             if (header.classList.contains('active')) {
-                // When active, set max-height to its content's scroll height.
                 groupBody.style.maxHeight = groupBody.scrollHeight + 'px';
             } else {
-                // When inactive, collapse it.
                 groupBody.style.maxHeight = '0';
             }
         };
 
-        // Set initial state on page load.
         if (header.classList.contains('active')) {
-            // For initially active panels, wait a frame to get the correct scrollHeight after render.
             requestAnimationFrame(updateMaxHeight);
         } else {
             groupBody.style.maxHeight = '0';
@@ -159,9 +155,6 @@ export function setupCollapsibleGroups() {
             updateMaxHeight();
         });
         
-        // Use a ResizeObserver to automatically update the max-height when the content
-        // inside the group body changes size (e.g., when a sub-option is enabled).
-        // This also elegantly solves the timing issue on initial expansion.
         const resizeObserver = new ResizeObserver(updateMaxHeight);
         resizeObserver.observe(groupBody);
     });
@@ -175,11 +168,14 @@ export function toggleControlGroups() {
     document.getElementById('tile-text-options')!.style.display = isChecked('tile-use-logo') ? 'none' : 'grid';
     document.getElementById('quality-control')!.classList.toggle('hidden', (document.getElementById('output-format') as HTMLSelectElement).value === 'png');
     
-    const mode = (document.getElementById('resize-mode') as HTMLSelectElement).value;
+    const mode = (document.getElementById('output-format') as HTMLSelectElement).value;
+    document.getElementById('quality-control')!.classList.toggle('hidden', mode === 'png');
+
+    const resizeMode = (document.getElementById('resize-mode') as HTMLSelectElement).value;
     const resizeControls = document.getElementById('resize-controls')!;
-    resizeControls.classList.toggle('hidden', mode === 'none');
-    (document.getElementById('resize-width') as HTMLElement).style.display = (mode === 'width' || mode === 'fit') ? 'block' : 'none';
-    (document.getElementById('resize-height') as HTMLElement).style.display = (mode === 'height' || mode === 'fit') ? 'block' : 'none';
+    resizeControls.classList.toggle('hidden', resizeMode === 'none');
+    (document.getElementById('resize-width') as HTMLElement).style.display = (resizeMode === 'width' || resizeMode === 'fit') ? 'block' : 'none';
+    (document.getElementById('resize-height') as HTMLElement).style.display = (resizeMode === 'height' || resizeMode === 'fit') ? 'block' : 'none';
 
     updateSettingsAndPreview();
 }
@@ -193,7 +189,7 @@ export function populatePickers() {
         btn.innerHTML = `<i class="${icon.class}"></i>`;
         btn.dataset.name = icon.name;
         btn.addEventListener('click', () => {
-            AppState.selectedIcon = icon;
+            setAppState({ selectedIcon: icon });
             const display = document.getElementById('icon-display')!;
             display.innerHTML = `<i class="${icon.class}"></i><span>${icon.name}</span>`;
             document.getElementById('icon-picker-modal')!.classList.add('hidden');
@@ -232,27 +228,28 @@ async function handleAddImages() {
 }
 async function addImages(newImages: { name: string, path: string }[]) {
     const AppState = getAppState();
+    const currentImages = [...AppState.images];
     for (const image of newImages) {
-        if (!AppState.images.some(existing => existing.path === image.path)) {
+        if (!currentImages.some(existing => existing.path === image.path)) {
             const dimensions = await getImageDimensions(image.path);
-            AppState.images.push({ ...image, ...dimensions });
+            currentImages.push({ ...image, ...dimensions });
         }
     }
+    setAppState({ images: currentImages });
     renderImageGrid();
     updateStartButtonState();
 }
-function handleClearImages() { getAppState().images = []; renderImageGrid(); updateStartButtonState(); }
+function handleClearImages() { setAppState({ images: [] }); renderImageGrid(); updateStartButtonState(); }
 function handleGridClick(e: MouseEvent) { const item = (e.target as HTMLElement).closest('.grid-item'); if (item) openPreview(parseInt((item as HTMLElement).dataset.index!, 10)); }
 
 async function handleSelectLogo() {
-    const AppState = getAppState();
     const filePaths = await window.api.openImages();
     if (filePaths && filePaths.length > 0) {
         const file = { name: filePaths[0].split(/[/\\]/).pop()!, path: filePaths[0] };
         const logoImg = new Image();
         logoImg.src = file.path;
         logoImg.onload = () => {
-            AppState.logoFile = { ...file, element: logoImg };
+            setAppState({ logoFile: { ...file, element: logoImg } });
             document.getElementById('logo-filename')!.textContent = file.name;
             (document.getElementById('logo-preview') as HTMLImageElement)!.src = file.path;
             document.getElementById('logo-preview-container')!.classList.remove('hidden');
@@ -261,9 +258,8 @@ async function handleSelectLogo() {
     }
 }
 async function handleSelectOutputDir() {
-    const AppState = getAppState();
     const dir = await window.api.selectOutputDir();
-    if (dir) { AppState.outputDir = dir; document.getElementById('output-dir-path')!.textContent = dir; updateStartButtonState(); }
+    if (dir) { setAppState({ outputDir: dir }); document.getElementById('output-dir-path')!.textContent = dir; updateStartButtonState(); }
 }
 
 // --- UI State Updates ---
@@ -317,8 +313,17 @@ async function processImages() {
         const image = AppState.images[i];
         document.getElementById('progress-text')!.textContent = `Processing ${i + 1} of ${total}: ${image.name}`;
         
-        const dataUrl = await applyWatermarksToImage(image);
+        let dataUrl = await applyWatermarksToImage(image);
         if (dataUrl) {
+             if (AppState.settings.aiGhosting?.enabled) {
+                document.getElementById('progress-text')!.textContent = `Applying AI Ghosting to ${image.name}...`;
+                const result = await window.api.ghostWatermark({ dataUrl, subtlety: AppState.settings.aiGhosting.subtlety });
+                if (result.success && result.dataUrl) {
+                    dataUrl = result.dataUrl;
+                } else {
+                    console.warn(`AI Ghosting failed for ${image.name}: ${result.error}`);
+                }
+            }
             await window.api.saveFile({ dataUrl, directory: AppState.outputDir!, originalName: image.name, format: AppState.settings.output.format });
         }
         document.getElementById('progress-bar-inner')!.style.width = `${((i + 1) / total) * 100}%`;

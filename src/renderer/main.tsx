@@ -13,9 +13,8 @@ declare global {
         api: {
             openImages: () => Promise<string[]>;
             selectOutputDir: () => Promise<string | null>;
-            saveFile: (args: { dataUrl: string; directory: string; originalName: string; format:string }) => Promise<{ success: boolean; path?: string; error?: string }>;
+            saveFile: (args: { dataUrl: string; directory: string; originalName: string; format: string }) => Promise<{ success: boolean; path?: string; error?: string }>;
             openFolder: (path: string) => void;
-            // FIX: Added missing 'ghostWatermark' property to sync type declarations.
             ghostWatermark: (args: { dataUrl: string, subtlety: number }) => Promise<{ success: boolean; dataUrl?: string, error?: string }>;
         };
     }

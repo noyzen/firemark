@@ -1,4 +1,5 @@
 
+
 const { app, BrowserWindow, Menu, nativeTheme, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -108,6 +109,13 @@ ipcMain.handle('file:save', async (event, { dataUrl, directory, originalName, fo
 
 ipcMain.handle('app:open-folder', (event, folderPath) => {
     shell.openPath(folderPath);
+});
+
+// Placeholder for AI Ghosting feature - prevents renderer errors
+ipcMain.handle('app:ghost-watermark', (event, { dataUrl, subtlety }) => {
+    console.error(`'ghostWatermark' feature is not implemented in the main process.`);
+    // Return original dataUrl to avoid breaking the processing chain
+    return { success: false, error: 'AI Ghosting not implemented.' };
 });
 
 // --- Window Control Handlers ---
