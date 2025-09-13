@@ -294,33 +294,31 @@ export function toggleControlGroups() {
     (document.getElementById('resize-width') as HTMLElement).style.display = (mode === 'width' || mode === 'fit') ? 'block' : 'none';
     (document.getElementById('resize-height') as HTMLElement).style.display = (mode === 'height' || mode === 'fit') ? 'block' : 'none';
 }
-export function populatePickers() {
+export async function populatePickers() {
     const faIcons: { class: string; unicode: string; name: string }[] = [];
     try {
-        const sheet = Array.from(document.styleSheets).find(s => s.href && s.href.includes('all.min.css'));
-        if (sheet) {
-            const rules = Array.from(sheet.cssRules);
-            const iconRegex = /\.fa-([a-zA-Z0-9-]+)::before/;
-            const classPrefixRegex = /(fa[brs])/;
+        const response = await fetch('../../fonts/all.min.css');
+        if (!response.ok) throw new Error('Failed to load Font Awesome CSS');
+        const cssText = await response.text();
 
-            for (const rule of rules) {
-                if (rule instanceof CSSStyleRule) {
-                    const match = rule.selectorText.match(iconRegex);
-                    if (match && rule.style.fontFamily.includes('Font Awesome')) {
-                        const name = match[1];
-                        const content = rule.style.getPropertyValue('content');
-                        if (content && content !== 'normal') {
-                            const prefixMatch = rule.selectorText.match(classPrefixRegex);
-                            const prefix = prefixMatch ? prefixMatch[1] : 'fas';
-                            const styleMap: { [key: string]: string } = { 'fas': 'solid', 'far': 'regular', 'fab': 'brands' };
-                            
-                            faIcons.push({
-                                class: `fa-${styleMap[prefix]} fa-${name}`,
-                                unicode: JSON.parse(content),
-                                name: name
-                            });
-                        }
-                    }
+        const ruleRegex = /([^{}]+)\s*\{\s*content:\s*"\\([a-fA-F0-9]+)"[^}]*}/g;
+        let match;
+        while ((match = ruleRegex.exec(cssText)) !== null) {
+            const selectors = match[1];
+            const unicode = String.fromCharCode(parseInt(match[2], 16));
+
+            if (!selectors.includes('::before')) continue;
+
+            const individualSelectors = selectors.split(',');
+            for (const selector of individualSelectors) {
+                const iconNameMatch = selector.match(/\.fa-([a-zA-Z0-9-]+)/);
+                if (iconNameMatch) {
+                    const name = iconNameMatch[1];
+                    let style = 'solid';
+                    if (selector.includes('.fa-brands')) style = 'brands';
+                    else if (selector.includes('.fa-regular')) style = 'regular';
+                    
+                    faIcons.push({ class: `fa-${style} fa-${name}`, unicode, name });
                 }
             }
         }

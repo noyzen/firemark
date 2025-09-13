@@ -67,16 +67,16 @@ async function populateFontSelectors() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     setupWindowControls();
     setupEventListeners();
-    populateFontSelectors();
+    await populateFontSelectors();
     initializeDefaultState();
     setupRangeValueDisplays();
     setupCollapsibleGroups();
     loadPresets();
     toggleControlGroups();
-    populatePickers();
+    await populatePickers();
 });
 
 function setupWindowControls() {

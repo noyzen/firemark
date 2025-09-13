@@ -164,70 +164,67 @@ export function drawSingleIconWatermark(ctx: CanvasRenderingContext2D, width: nu
 export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
     const s = AppState.settings.tile;
     ctx.save();
+
+    // Common setup
     ctx.globalAlpha = s.opacity;
     ctx.font = `${s.fontSize}px ${s.fontFamily || 'Arial'}`;
     ctx.fillStyle = s.color || '#FFFFFF';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
+    // Determine if using logo or text
     let logoToUse = null;
     if (s.useLogo) {
-        // Prefer active logo layer, otherwise find first enabled logo
         logoToUse = AppState.settings.logos.find(l => l.id === AppState.activeLayer?.id && AppState.activeLayer?.type === 'logos' && l.enabled && l.element)
                     || AppState.settings.logos.find(l => l.enabled && l.element);
     }
-
     if (s.useLogo && !logoToUse) {
-        ctx.restore();
-        return; // Don't draw anything if logo is requested but not found
+        ctx.restore(); return;
     }
     
-    const text = logoToUse ? ' ' : s.content;
-    const metrics = ctx.measureText(text);
-    const itemWidth = logoToUse ? (logoToUse.element.width * (s.fontSize / logoToUse.element.height)) : metrics.width;
+    // Calculate unrotated item dimensions
+    const tempCtx = document.createElement('canvas').getContext('2d')!;
+    tempCtx.font = ctx.font;
+    const metrics = tempCtx.measureText(s.content);
     const itemHeight = s.fontSize;
+    const itemWidth = logoToUse 
+        ? (logoToUse.element.width * (itemHeight / logoToUse.element.height)) 
+        : metrics.width;
 
-    const canvas = document.createElement('canvas');
-    const tileCtx = canvas.getContext('2d')!;
-    
-    // Redesigned tile calculation for accurate bounding box
+    // Set up rotation and grid steps
     const angle = s.rotation * Math.PI / 180;
-    const absCos = Math.abs(Math.cos(angle));
-    const absSin = Math.abs(Math.sin(angle));
-
-    // Calculate the bounding box of the rotated item
-    const rotatedItemWidth = itemWidth * absCos + itemHeight * absSin;
-    const rotatedItemHeight = itemWidth * absSin + itemHeight * absCos;
+    const stepX = itemWidth + s.spacing;
+    const stepY = itemHeight + s.spacing;
     
-    // Spacing can be negative for overlap, ensure canvas size is at least 1px.
-    const tileWidth = Math.max(1, rotatedItemWidth + s.spacing);
-    const tileHeight = Math.max(1, rotatedItemHeight + s.spacing);
-
-    canvas.width = tileWidth;
-    canvas.height = tileHeight;
-    
-    tileCtx.font = ctx.font;
-    tileCtx.fillStyle = ctx.fillStyle;
-    tileCtx.textAlign = 'center';
-    tileCtx.textBaseline = 'middle';
-    
-    // Move to the center of the tile canvas and rotate
-    tileCtx.translate(tileWidth / 2, tileHeight / 2);
-    tileCtx.rotate(angle);
-    
-    if (logoToUse) {
-        const logo = logoToUse.element;
-        // The logo's height is defined by the 'fontSize' slider in the UI for logos
-        const logoHeight = s.fontSize;
-        const logoWidth = logo.width * (logoHeight / logo.height);
-        tileCtx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
-    } else {
-        tileCtx.fillText(s.content, 0, 0);
+    if (stepX <= 0 || stepY <= 0) {
+        ctx.restore(); return;
     }
-    
-    const pattern = ctx.createPattern(canvas, 'repeat')!;
-    ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, width, height);
+
+    // Rotate the entire canvas context
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate(angle);
+
+    // Calculate the dimensions of the area to be tiled, which is larger
+    // than the canvas to ensure corners are covered after rotation.
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    const rotatedWidth = width * cos + height * sin;
+    const rotatedHeight = width * sin + height * cos;
+
+    // Loop and draw the item on the rotated grid
+    for (let y = -rotatedHeight / 2; y < rotatedHeight / 2; y += stepY) {
+        for (let x = -rotatedWidth / 2; x < rotatedWidth / 2; x += stepX) {
+            if (logoToUse) {
+                const logo = logoToUse.element;
+                const logoHeight = itemHeight;
+                const logoWidth = itemWidth;
+                ctx.drawImage(logo, x - logoWidth / 2, y - logoHeight / 2, logoWidth, logoHeight);
+            } else {
+                ctx.fillText(s.content, x, y);
+            }
+        }
+    }
+
     ctx.restore();
 }
 
@@ -330,9 +327,13 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
 
 const cornerShapes: { [key: string]: string } = {
     'classic': 'M0,40 L0,0 L40,0',
-    'curly': 'M0,50 Q25,25 50,0',
+    'curly': 'M0,50 C10,25 25,10 50,0',
     'tech': 'M0,0 L40,0 L40,5 L5,5 L5,40 L0,40 Z',
     'slash': 'M0,0 L30,30',
+    'ornate': 'M0,60 C30,20 40,30 60,0 M0,45 C20,15 25,20 45,0 M0,30 C10,5 10,10 30,0',
+    'floral': 'M0,100 C50,50 50,50 100,0 M0,80 C40,40 40,40 80,0 M20,100 C60,60 60,60 100,20',
+    'victorian': 'M0,0 L50,0 C50,20 40,25 30,25 C20,25 20,40 0,50 Z',
+    'geometric': 'M0,50 L50,0 L50,10 L10,50 L0,50 Z M0,30 L30,0 L30,10 L10,30 L0,30 Z',
 };
 
 export function drawFrameWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {
@@ -346,7 +347,7 @@ export function drawFrameWatermark(ctx: CanvasRenderingContext2D, width: number,
         if (!pathString) { ctx.restore(); return; }
         
         const path = new Path2D(pathString);
-        const isFilled = pathString.endsWith('Z');
+        const isFilled = pathString.toLowerCase().endsWith('z');
 
         ctx.lineWidth = s.width;
         ctx.strokeStyle = s.color;
