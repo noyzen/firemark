@@ -1,0 +1,117 @@
+/* ---
+--- Firemark Layout Styles
+--- */
+
+/* --- Window Frame & Titlebar --- */
+.window-border {
+  position: fixed; 
+  inset: 0; 
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px var(--border);
+  z-index: 2000;
+}
+body.maximized .window-border { 
+  display: none; 
+}
+
+#titlebar {
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  height: 36px;
+  background: var(--bg-dark); 
+  color: var(--fg-mid);
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  z-index: 1000; 
+  border-bottom: 1px solid var(--border);
+}
+.drag-region { 
+  -webkit-app-region: drag; 
+  flex: 1; 
+  height: 100%; 
+  display: flex; 
+  align-items: center; 
+  padding-left: 12px; 
+}
+.window-title { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  font-size: 13px; 
+  font-weight: 500; 
+}
+.window-title i { 
+  color: var(--accent); 
+}
+.window-controls { 
+  display: flex; 
+  height: 100%; 
+}
+.window-controls button {
+  -webkit-app-region: no-drag; 
+  width: 36px; 
+  height: 36px;
+  border: none; 
+  background: transparent; 
+  color: inherit;
+  cursor: pointer; 
+  display: grid; 
+  place-items: center; 
+  transition: background-color 0.2s;
+}
+.window-controls button:hover { 
+  background: var(--bg-light); 
+}
+.window-controls #close-btn:hover { 
+  background: #e81123; 
+  color: white; 
+}
+
+/* --- Main Layout --- */
+#app-container {
+  display: flex;
+  height: 100vh;
+  padding-top: 36px;
+}
+.sidebar {
+  width: 340px;
+  flex-shrink: 0;
+  background: var(--bg-dark);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sidebar-header h2 { 
+  margin: 0; 
+  font-size: 16px; 
+  font-weight: 600; 
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+}
+.sidebar-content {
+  padding: 16px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+#image-grid-actions {
+  flex-shrink: 0;
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

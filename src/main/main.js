@@ -109,7 +109,6 @@ ipcMain.handle('app:open-folder', (event, folderPath) => {
     shell.openPath(folderPath);
 });
 
-
 // --- Window Control Handlers ---
 
 ipcMain.handle('window:minimize', () => mainWindow?.minimize());
