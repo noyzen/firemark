@@ -458,32 +458,45 @@ function setupRangeValueDisplays() {
 }
 function setupCollapsibleGroups() {
     document.querySelectorAll('.collapsible').forEach(header => {
-        header.addEventListener('click', () => {
+        const body = header.nextElementSibling as HTMLElement;
+        if (!body) return;
+
+        header.addEventListener('click', (event) => {
+            // Ignore clicks on controls within the header, like the enable/disable toggle
+            if ((event.target as HTMLElement).closest('.header-controls')) {
+                return;
+            }
+
             header.classList.toggle('active');
-            const body = header.nextElementSibling as HTMLElement;
-            if (body) {
-                if (body.classList.contains('open')) {
-                    // It's open, so close it.
-                    body.style.maxHeight = null; // Revert to CSS max-height: 0
-                    body.classList.remove('open');
-                } else {
-                    // It's closed, so open it.
-                    body.classList.add('open');
-                    body.style.maxHeight = body.scrollHeight + "px";
-                }
+
+            if (header.classList.contains('active')) {
+                // To open: set max-height to the element's full scroll-height
+                body.style.maxHeight = body.scrollHeight + 'px';
+            } else {
+                // To close: set max-height to 0 after getting current height to transition from
+                body.style.maxHeight = body.scrollHeight + 'px';
+                requestAnimationFrame(() => {
+                    body.style.maxHeight = '0px';
+                });
+            }
+        });
+        
+        // When the transition ends, if the panel is open, set max-height to 'none'.
+        // This allows the content inside to resize dynamically without being clipped.
+        body.addEventListener('transitionend', () => {
+            if (header.classList.contains('active')) {
+                body.style.maxHeight = 'none';
             }
         });
 
-        // Initialize groups that should be open by default
+        // Initialize panel states on load
         if (header.classList.contains('active')) {
-            const body = header.nextElementSibling as HTMLElement;
-            if (body) {
-                // Use a short timeout to ensure correct scrollHeight calculation after initial render
-                setTimeout(() => {
-                    body.classList.add('open');
-                    body.style.maxHeight = body.scrollHeight + "px";
-                }, 100);
-            }
+            // Use a timeout to ensure correct scrollHeight is calculated after initial page render
+            setTimeout(() => {
+                body.style.maxHeight = body.scrollHeight + 'px';
+            }, 150);
+        } else {
+            body.style.maxHeight = '0px';
         }
     });
 }

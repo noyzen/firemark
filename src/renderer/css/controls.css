@@ -49,21 +49,14 @@
   transform: rotate(-90deg); 
 }
 
-.group-body { 
-  display: grid; 
-  gap: 12px; 
-  grid-template-columns: 1fr; 
-  transition: max-height 0.3s ease-out, padding-top 0.3s ease-out, padding-bottom 0.3s ease-out;
-  padding-left: 16px;
-  padding-right: 16px;
+.group-body {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+  transition: max-height 0.3s ease-out;
+  padding: 16px;
   overflow: hidden;
   max-height: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.group-body.open {
-  padding-top: 16px;
-  padding-bottom: 16px;
 }
 
 .control-group label { 
