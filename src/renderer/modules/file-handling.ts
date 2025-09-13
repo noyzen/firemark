@@ -62,6 +62,17 @@ export async function handleSelectLogo(layerId: number) {
 }
 
 export async function processImages() {
+    if (!AppState.outputDir) {
+        const dir = await window.api.selectOutputDir();
+        if (dir) {
+            AppState.outputDir = dir;
+            document.getElementById('output-dir-path')!.textContent = dir;
+            updateStartButtonState();
+        } else {
+            return; // Abort if user cancels directory selection
+        }
+    }
+
     const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
     const btnText = startBtn.querySelector('.btn-text')!;
     const btnSpinner = startBtn.querySelector('.btn-spinner')!;
@@ -89,7 +100,8 @@ export async function processImages() {
     document.getElementById('open-folder-btn')!.addEventListener('click', () => window.api.openFolder(AppState.outputDir!));
 
     setTimeout(() => {
-        btnText.textContent = 'Start Processing'; btnSpinner.classList.add('hidden');
+        btnText.textContent = 'Start Watermarking';
+        btnSpinner.classList.add('hidden');
         if(document.getElementById('progress-container')) { document.getElementById('progress-container')!.classList.add('hidden'); }
         updateStartButtonState();
     }, 5000);

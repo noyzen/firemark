@@ -318,7 +318,7 @@ export function filterIcons(e: Event) {
     });
 }
 export function updateStartButtonState() { 
-    (document.getElementById('start-btn') as HTMLButtonElement).disabled = !(AppState.images.length > 0 && AppState.outputDir); 
+    (document.getElementById('start-btn') as HTMLButtonElement).disabled = AppState.images.length === 0;
 }
 
 function updateIndicator(groupId: string, countOrState: number | boolean) {
