@@ -58,14 +58,6 @@ export function selectLayer(type: 'texts' | 'logos' | 'icons', id: number) {
     updateActiveLayerControls();
 }
 
-function toggleLayer(type: 'texts' | 'logos' | 'icons', id: number, enabled: boolean) {
-    const layer = AppState.settings[type].find((l: { id: number; }) => l.id === id);
-    if (layer) {
-        layer.enabled = enabled;
-        updateSettingsAndPreview();
-    }
-}
-
 export function renderAllLayerLists() {
     renderLayerList('texts');
     renderLayerList('logos');
@@ -97,7 +89,12 @@ function renderLayerList(type: 'texts' | 'logos' | 'icons') {
         `;
 
         item.querySelector('.delete-layer-btn')!.addEventListener('click', (e) => { e.stopPropagation(); deleteLayer(type, layer.id); });
-        item.addEventListener('click', () => selectLayer(type, layer.id));
+        
+        // Let the global input/change handler manage the toggle state
+        item.addEventListener('click', (e) => {
+            if((e.target as HTMLElement).closest('.toggle-switch')) return;
+            selectLayer(type, layer.id)
+        });
         
         listEl.appendChild(item);
     });
@@ -328,12 +325,7 @@ function recenterActiveLayer() {
     const layer = AppState.settings[type]?.find((l: { id: any; }) => l.id === id);
     if (layer && layer.freePlacement) {
         const { width, height } = previewState.image;
-        // Temporarily set position to center to calculate the bbox width/height correctly
-        const tempPos = layer.position;
-        layer.position = {x: 0.5, y: 0.5};
         const bbox = getWatermarkBBox(type, layer, width, height);
-        layer.position = tempPos; // Restore original position
-        
         if (bbox) {
             const centerX = (width - bbox.w) / 2;
             const centerY = (height - bbox.h) / 2;

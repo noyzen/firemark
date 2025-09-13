@@ -5,7 +5,7 @@ import { getWatermarkBBox } from './drawing';
 import { previewState } from './state';
 
 export function updateSettings() {
-    // Read layer enabled state directly from DOM first
+    // Read layer enabled state directly from DOM first for ALL layers
     ['texts', 'logos', 'icons'].forEach(type => {
         AppState.settings[type as 'texts' | 'logos' | 'icons']?.forEach(layer => {
             const item = document.querySelector(`.layer-item[data-id="${layer.id}"]`);

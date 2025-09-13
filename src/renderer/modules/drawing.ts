@@ -18,8 +18,8 @@ export function getPositionCoords(pos: { x: number, y: number }, w: number, h: n
     }
     // In grid mode, pos is an anchor point (0, 0.5, or 1 for each axis).
     // We calculate the top-left coordinate (x,y) to place the element according to the anchor.
-    const x = pos.x * (w - elementWidth - padding * 2) + padding;
-    const y = pos.y * (h - elementHeight - padding * 2) + padding;
+    const x = pos.x * (w - elementWidth) - (elementWidth/2 * (pos.x * 2 - 1)) + (pos.x * -2 + 1) * padding ;
+    const y = pos.y * (h - elementHeight) - (elementHeight/2 * (pos.y * 2 - 1)) + (pos.y * -2 + 1) * padding;
     return { x, y };
 }
 
@@ -64,7 +64,7 @@ export function getWatermarkBBox(type: 'texts' | 'logos' | 'icons', layer: any, 
 export function drawSingleTextWatermark(ctx: CanvasRenderingContext2D, width: number, height: number, s: any) {
     const lines = String(s.content).split('\n');
     ctx.font = `${s.italic ? 'italic ' : ''}${s.bold ? 'bold ' : ''}${s.fontSize}px ${s.fontFamily}`;
-    const lineHeight = s.fontSize * s.lineHeight; const totalTextHeight = lines.length * lineHeight;
+    const lineHeight = s.fontSize * s.lineHeight; const totalTextHeight = lines.length * lineHeight - (s.fontSize * (s.lineHeight - 1));
     const metrics = lines.map(line => ctx.measureText(line)); const maxTextWidth = Math.max(...metrics.map(m => m.width));
     
     let { x, y } = getPositionCoords(s.position, width, height, maxTextWidth, totalTextHeight, s.padding, s.freePlacement);
@@ -100,7 +100,8 @@ export function drawSingleLogoWatermark(ctx: CanvasRenderingContext2D, width: nu
 export function drawSingleIconWatermark(ctx: CanvasRenderingContext2D, width: number, height: number, s: any) {
     ctx.font = `900 ${s.size}px "Font Awesome 6 Free"`;
     const metrics = ctx.measureText(s.icon.unicode);
-    const { x, y } = getPositionCoords(s.position, width, height, metrics.width, s.size, s.padding, s.freePlacement);
+    const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+    const { x, y } = getPositionCoords(s.position, width, height, metrics.width, textHeight, s.padding, s.freePlacement);
     ctx.globalAlpha = s.opacity; ctx.fillStyle = s.color; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
     ctx.fillText(s.icon.unicode, x, y); ctx.globalAlpha = 1.0;
 }
@@ -114,11 +115,16 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    const text = s.useLogo ? ' ' : s.content; // Use space for logo to measure
+    let logoToUse = null;
+    if (s.useLogo) {
+        // Prefer active logo layer, otherwise find first enabled logo
+        logoToUse = AppState.settings.logos.find(l => l.id === AppState.activeLayer?.id && AppState.activeLayer?.type === 'logos' && l.enabled && l.element)
+                    || AppState.settings.logos.find(l => l.enabled && l.element);
+    }
+    
+    const text = logoToUse ? ' ' : s.content;
     const metrics = ctx.measureText(text);
-    const textWidth = s.useLogo && AppState.activeLayer?.type === 'logos' ? 
-        (AppState.settings.logos.find(l=>l.id===AppState.activeLayer.id).element.width * (s.fontSize / AppState.settings.logos.find(l=>l.id===AppState.activeLayer.id).element.height))
-        : metrics.width;
+    const textWidth = logoToUse ? (logoToUse.element.width * (s.fontSize / logoToUse.element.height)) : metrics.width;
     const textHeight = s.fontSize;
 
     const canvas = document.createElement('canvas');
@@ -136,16 +142,11 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
     tileCtx.translate(diag / 2, diag / 2);
     tileCtx.rotate(s.rotation * Math.PI / 180);
     
-    if (s.useLogo && AppState.settings.logos.some(l=>l.enabled)) {
-        let activeLogo = AppState.settings.logos.find(l => l.id === AppState.activeLayer?.id && l.enabled);
-        if(!activeLogo) activeLogo = AppState.settings.logos.find(l=>l.enabled);
-
-        if(activeLogo && activeLogo.element) {
-            const logo = activeLogo.element;
-            const logoHeight = s.fontSize;
-            const logoWidth = logo.width * (logoHeight / logo.height);
-            tileCtx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
-        }
+    if (logoToUse) {
+        const logo = logoToUse.element;
+        const logoHeight = s.fontSize;
+        const logoWidth = logo.width * (logoHeight / logo.height);
+        tileCtx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight);
     } else {
         tileCtx.fillText(s.content, 0, 0);
     }
@@ -161,22 +162,22 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
     const pCanvas = document.createElement('canvas');
     const pCtx = pCanvas.getContext('2d')!;
     const size = s.size;
-    pCanvas.width = size * 2;
-    pCanvas.height = size * 2;
     
-    pCtx.fillStyle = s.color1;
     pCtx.strokeStyle = s.color1;
+    pCtx.fillStyle = s.color1;
     pCtx.lineWidth = Math.max(1, size / 10);
 
     switch(s.type) {
         case 'checker':
-            pCtx.fillRect(0,0,size,size);
-            pCtx.fillRect(size,size,size,size);
+            pCanvas.width = size * 2; pCanvas.height = size * 2;
+            pCtx.fillStyle = s.color1;
+            pCtx.fillRect(0,0,size,size); pCtx.fillRect(size,size,size,size);
+            pCtx.fillStyle = s.color2;
+            pCtx.fillRect(size,0,size,size); pCtx.fillRect(0,size,size,size);
             break;
         case 'lines':
             pCanvas.width=size; pCanvas.height=size;
-            pCtx.strokeStyle = s.color1;
-            pCtx.lineWidth = Math.max(1, size / 5);
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size / 5);
             pCtx.beginPath(); pCtx.moveTo(0,size); pCtx.lineTo(size,0); pCtx.stroke();
             break;
         case 'dots':
@@ -187,14 +188,12 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
             break;
         case 'cross':
              pCanvas.width=size; pCanvas.height=size;
-             pCtx.strokeStyle = s.color1;
-             pCtx.lineWidth = Math.max(1, size / 5);
+             pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size / 5);
              pCtx.beginPath(); pCtx.moveTo(0,size); pCtx.lineTo(size,0); pCtx.moveTo(0,0); pCtx.lineTo(size,size); pCtx.stroke();
             break;
         case 'honeycomb':
             pCanvas.width = size * 3; pCanvas.height = size * 1.732;
-            pCtx.strokeStyle = s.color1;
-            pCtx.lineWidth = Math.max(1, size/10);
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size/10);
             for(let i=0; i<2; i++){
                 for(let j=0; j<2; j++){
                     let x = (i*1.5 + j*1.5) * size;
@@ -210,38 +209,33 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
             break;
         case 'zigzag':
             pCanvas.width = size * 2; pCanvas.height = size;
-            pCtx.strokeStyle = s.color1;
-            pCtx.lineWidth = Math.max(1, size/8);
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size/8);
             pCtx.beginPath(); pCtx.moveTo(0, size/2); pCtx.lineTo(size/2, 0); pCtx.lineTo(size, size/2); pCtx.lineTo(size*1.5, 0); pCtx.lineTo(size*2, size/2); pCtx.stroke();
             break;
         case 'vlines':
             pCanvas.width = size; pCanvas.height = size;
-            pCtx.lineWidth = Math.max(1, size / 5);
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size / 5);
             pCtx.beginPath(); pCtx.moveTo(size/2, 0); pCtx.lineTo(size/2, size); pCtx.stroke();
             break;
         case 'hlines':
             pCanvas.width = size; pCanvas.height = size;
-            pCtx.lineWidth = Math.max(1, size / 5);
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size / 5);
             pCtx.beginPath(); pCtx.moveTo(0, size/2); pCtx.lineTo(size, size/2); pCtx.stroke();
             break;
         case 'bricks':
             pCanvas.width = size * 2; pCanvas.height = size;
-            pCtx.lineWidth = Math.max(1, size/10);
-            pCtx.strokeRect(0.5, 0.5, size, size/2);
-            pCtx.strokeRect(size + 0.5, size/2 + 0.5, size, size/2);
-            pCtx.beginPath(); pCtx.moveTo(size, 0); pCtx.lineTo(size, size/2); pCtx.stroke();
-            pCtx.beginPath(); pCtx.moveTo(0, size/2); pCtx.lineTo(0, size); pCtx.stroke();
-            pCtx.beginPath(); pCtx.moveTo(2*size, size/2); pCtx.lineTo(2*size, size); pCtx.stroke();
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size/10);
+            pCtx.strokeRect(0.5, 0.5, size-1, size/2-1);
+            pCtx.strokeRect(size + 0.5, size/2 + 0.5, size-1, size/2-1);
             break;
         case 'triangles':
             pCanvas.width = size; pCanvas.height = size;
-            pCtx.lineWidth = Math.max(1, size/10);
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size/10);
             pCtx.beginPath(); pCtx.moveTo(0,0); pCtx.lineTo(size,0); pCtx.lineTo(size/2, size); pCtx.closePath(); pCtx.stroke();
-            pCtx.beginPath(); pCtx.moveTo(0,size); pCtx.lineTo(size,size); pCtx.lineTo(size/2, 0); pCtx.closePath(); pCtx.stroke();
             break;
         case 'waves':
             pCanvas.width = size * 2; pCanvas.height = size;
-            pCtx.lineWidth = Math.max(1, size/8);
+            pCtx.strokeStyle = s.color1; pCtx.lineWidth = Math.max(1, size/8);
             pCtx.beginPath();
             pCtx.moveTo(0, size / 2);
             pCtx.bezierCurveTo(size / 2, 0, size / 2, size, size, size / 2);
@@ -253,8 +247,10 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
     ctx.save();
     ctx.globalAlpha = s.opacity;
     const pattern = ctx.createPattern(pCanvas, 'repeat')!;
-    ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, width, height);
+    if (pattern) {
+        ctx.fillStyle = pattern;
+        ctx.fillRect(0, 0, width, height);
+    }
     ctx.restore();
 }
 
