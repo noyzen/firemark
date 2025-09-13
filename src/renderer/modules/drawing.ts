@@ -121,6 +121,11 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
         logoToUse = AppState.settings.logos.find(l => l.id === AppState.activeLayer?.id && AppState.activeLayer?.type === 'logos' && l.enabled && l.element)
                     || AppState.settings.logos.find(l => l.enabled && l.element);
     }
+
+    if (s.useLogo && !logoToUse) {
+        ctx.restore();
+        return; // Don't draw anything if logo is requested but not found
+    }
     
     const text = logoToUse ? ' ' : s.content;
     const metrics = ctx.measureText(text);
@@ -130,7 +135,7 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
     const canvas = document.createElement('canvas');
     const tileCtx = canvas.getContext('2d')!;
     
-    const diag = Math.sqrt(textWidth*textWidth + textHeight*textHeight) + s.spacing;
+    const diag = Math.max(1, Math.sqrt(textWidth*textWidth + textHeight*textHeight) + s.spacing);
     canvas.width = diag;
     canvas.height = diag;
     

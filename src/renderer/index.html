@@ -288,7 +288,7 @@
                 </div>
                 <label for="tile-spacing">Spacing</label>
                 <div class="range-with-value">
-                    <input type="range" id="tile-spacing" min="10" max="500" value="150">
+                    <input type="range" id="tile-spacing" min="-100" max="500" value="150">
                     <span class="value-display" id="tile-spacing-value">150px</span>
                 </div>
             </div>
@@ -419,12 +419,17 @@
                   <option value="webp">WebP</option>
                 </select>
             </div>
-            <div id="quality-control" class="hidden">
-              <label for="output-quality">Quality</label>
-              <div class="range-with-value">
-                <input type="range" id="output-quality" min="0.1" max="1" step="0.01" value="0.9">
-                <span class="value-display" id="output-quality-value">90%</span>
-              </div>
+            <div id="format-specific-output">
+                <div id="quality-control" class="hidden">
+                  <label for="output-quality">Quality</label>
+                  <div class="range-with-value">
+                    <input type="range" id="output-quality" min="0.1" max="1" step="0.01" value="0.9">
+                    <span class="value-display" id="output-quality-value">90%</span>
+                  </div>
+                </div>
+                <div id="png-info-control">
+                    <p class="control-info">PNG is a lossless format. Quality is always maximum.</p>
+                </div>
             </div>
             <label for="resize-mode">Resize</label>
             <div class="custom-select">
@@ -454,14 +459,17 @@
             <button id="add-images-btn" class="button-primary">Browse Files</button>
           </div>
         </div>
-        <div id="image-grid" class="hidden"></div>
-        <div id="image-grid-actions" class="hidden">
-          <button id="clear-images-btn" class="button-danger">Clear All</button>
-          <button id="start-btn" class="button-start" disabled>
-            <span class="btn-text">Start Processing</span>
-            <i class="fa-solid fa-circle-notch fa-spin btn-spinner hidden"></i>
-          </button>
+        <div id="grid-header" class="hidden">
+            <h3 id="grid-title">Image List</h3>
+            <div class="header-actions">
+                <button id="clear-images-btn" class="button-danger">Clear All</button>
+                <button id="start-btn" class="button-start" disabled>
+                    <span class="btn-text">Start Watermarking</span>
+                    <i class="fa-solid fa-circle-notch fa-spin btn-spinner hidden"></i>
+                </button>
+            </div>
         </div>
+        <div id="image-grid" class="hidden"></div>
         <div id="progress-container" class="hidden">
           <p id="progress-text"></p>
           <div class="progress-bar">
@@ -472,20 +480,24 @@
       
       <div id="preview-view" class="hidden">
           <div class="preview-header">
-              <button id="back-to-grid-btn" class="button-secondary"><i class="fa-solid fa-arrow-left"></i> Back to List</button>
-              <span id="preview-image-name"></span>
+              <div class="header-left">
+                  <button id="back-to-grid-btn" class="button-secondary" title="Back to List"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                  <button id="prev-image-btn" title="Previous Image"><i class="fa-solid fa-chevron-left"></i></button>
+                  <button id="next-image-btn" title="Next Image"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+              <div class="header-center">
+                  <button id="zoom-out-btn" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                  <span id="zoom-level">100%</span>
+                  <button id="zoom-in-btn" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                  <button id="zoom-reset-btn" title="Fit to Screen"><i class="fa-solid fa-compress"></i></button>
+              </div>
+              <div class="header-right">
+                  <button id="toggle-watermark-btn" title="Hold to view original"><i class="fa-solid fa-eye-slash"></i></button>
+                  <span id="preview-image-name"></span>
+              </div>
           </div>
           <div id="preview-canvas-container">
               <canvas id="preview-canvas"></canvas>
-          </div>
-          <div class="preview-toolbar">
-              <button id="prev-image-btn" title="Previous Image"><i class="fa-solid fa-chevron-left"></i></button>
-              <button id="zoom-out-btn" title="Zoom Out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-              <span id="zoom-level">100%</span>
-              <button id="zoom-in-btn" title="Zoom In"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-              <button id="zoom-reset-btn" title="Fit to Screen"><i class="fa-solid fa-compress"></i></button>
-              <button id="toggle-watermark-btn" title="Hold to view original"><i class="fa-solid fa-eye-slash"></i></button>
-              <button id="next-image-btn" title="Next Image"><i class="fa-solid fa-chevron-right"></i></button>
           </div>
       </div>
     </main>

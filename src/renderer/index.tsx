@@ -67,28 +67,37 @@ function setupEventListeners() {
     document.getElementById('logo-recenter-btn')!.addEventListener('click', () => UIEvents.recenterActiveLayer());
     document.getElementById('icon-recenter-btn')!.addEventListener('click', () => UIEvents.recenterActiveLayer());
 
-    document.querySelectorAll('.sidebar-content input, .sidebar-content select, .sidebar-content textarea').forEach(el => {
-        el.addEventListener('input', updateSettingsAndPreview);
-        el.addEventListener('change', updateSettingsAndPreview);
-    });
-    document.querySelectorAll('.sidebar-content button').forEach(el => {
-        el.addEventListener('click', (e) => {
-             const target = e.currentTarget as HTMLElement;
-             if (target.closest('.position-grid')) {
-                target.closest('.position-grid')!.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                target.classList.add('active');
-                updateSettingsAndPreview();
-             } else if (target.closest('.text-styles')) {
-                if(target.dataset.align) {
-                    target.closest('.text-styles')!.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
-                }
-                target.classList.toggle('active');
-                updateSettingsAndPreview();
-             }
-        });
-    });
+    const sidebarContent = document.querySelector('.sidebar-content')!;
 
-    document.querySelectorAll('.toggle-switch input, .group-header.collapsible').forEach(el => el.addEventListener('change', toggleControlGroups));
+    const handleSidebarUpdate = (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (target.matches('input, select, textarea')) {
+            updateSettingsAndPreview();
+        }
+        if (e.type === 'change' && target.matches('.toggle-switch input')) {
+            toggleControlGroups();
+        }
+    };
+
+    sidebarContent.addEventListener('input', handleSidebarUpdate);
+    sidebarContent.addEventListener('change', handleSidebarUpdate);
+
+    sidebarContent.addEventListener('click', (e) => {
+        const button = (e.target as HTMLElement).closest('button');
+        if (!button) return;
+
+        if (button.closest('.position-grid')) {
+            button.closest('.position-grid')!.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            updateSettingsAndPreview();
+        } else if (button.closest('.text-styles')) {
+            if (button.dataset.align) {
+                button.closest('.text-styles')!.querySelectorAll('[data-align]').forEach(b => b.classList.remove('active'));
+            }
+            button.classList.toggle('active');
+            updateSettingsAndPreview();
+        }
+    });
     
     document.getElementById('icon-picker-btn')!.addEventListener('click', () => document.getElementById('icon-picker-modal')!.classList.remove('hidden'));
     document.getElementById('emoji-picker-btn')!.addEventListener('click', () => document.getElementById('emoji-picker-modal')!.classList.remove('hidden'));

@@ -159,14 +159,36 @@ export function updateActiveLayerControls() {
 }
 
 export function renderImageGrid() {
-    const grid = document.getElementById('image-grid')!; const dropzone = document.getElementById('dropzone')!; const actions = document.getElementById('image-grid-actions')!;
+    const grid = document.getElementById('image-grid')!; 
+    const dropzone = document.getElementById('dropzone')!; 
+    const gridHeader = document.getElementById('grid-header')!;
+    const gridTitle = document.getElementById('grid-title')!;
+
     if (AppState.images.length === 0) {
-        grid.innerHTML = ''; grid.classList.add('hidden'); actions.classList.add('hidden'); dropzone.classList.remove('hidden'); return;
+        grid.innerHTML = ''; 
+        grid.classList.add('hidden'); 
+        gridHeader.classList.add('hidden');
+        dropzone.classList.remove('hidden'); 
+        return;
     }
-    dropzone.classList.add('hidden'); grid.classList.remove('hidden'); actions.classList.remove('hidden'); grid.innerHTML = '';
+
+    dropzone.classList.add('hidden'); 
+    grid.classList.remove('hidden'); 
+    gridHeader.classList.remove('hidden');
+    gridTitle.textContent = `Image List (${AppState.images.length} items)`;
+    grid.innerHTML = '';
+    
     AppState.images.forEach((image, index) => {
-        const item = document.createElement('div'); item.className = 'grid-item'; item.dataset.index = String(index);
-        const img = document.createElement('img'); img.src = image.path; img.alt = image.name; item.appendChild(img); grid.appendChild(item);
+        const item = document.createElement('div'); 
+        item.className = 'grid-item'; 
+        item.dataset.index = String(index);
+        item.innerHTML = `
+            <div class="grid-item-thumbnail">
+                <img src="${image.path}" alt="${image.name}" loading="lazy">
+            </div>
+            <span class="grid-item-name">${image.name}</span>
+        `;
+        grid.appendChild(item);
     });
 }
 export function handleGridClick(e: MouseEvent) { 
@@ -249,8 +271,11 @@ export function toggleControlGroups() {
     document.getElementById('text-stroke-controls')!.classList.toggle('hidden', !isChecked('text-stroke-enable'));
     document.getElementById('text-shadow-controls')!.classList.toggle('hidden', !isChecked('text-shadow-enable'));
     document.getElementById('tile-text-options')!.style.display = isChecked('tile-use-logo') ? 'none' : 'grid';
-    document.getElementById('quality-control')!.classList.toggle('hidden', (document.getElementById('output-format') as HTMLSelectElement).value === 'png');
     
+    const format = (document.getElementById('output-format') as HTMLSelectElement).value;
+    document.getElementById('quality-control')!.classList.toggle('hidden', format === 'png');
+    document.getElementById('png-info-control')!.classList.toggle('hidden', format !== 'png');
+
     const mode = (document.getElementById('resize-mode') as HTMLSelectElement).value;
     const resizeControls = document.getElementById('resize-controls')!;
     resizeControls.classList.toggle('hidden', mode === 'none');
