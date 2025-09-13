@@ -1,11 +1,24 @@
-<div align="center">
+# Firemark
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A powerful and beautiful batch image watermarking utility built with Electron.
 
-  <h1>Built with AI Studio</h2>
+Firemark allows you to add text, logo, or tiled watermarks to multiple images at once, with a range of customization options and a sleek, modern dark interface.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Scripts
+- `npm run electron:dev` — Run the app in development mode.
+- `npm run electron:build` — Build installers for your platform (AppImage for Linux, NSIS exe for Windows).
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Setup
+```
+npm install
+```
 
-</div>
+## Run
+```
+npm run electron:dev
+```
+
+## Build
+```
+npm run electron:build
+```

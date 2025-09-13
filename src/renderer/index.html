@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; script-src 'self';" />
+  <title>Firemark</title>
+  <link rel="stylesheet" href="../../fonts/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="window-border"></div>
+  <div id="titlebar">
+    <div class="drag-region">
+      <div class="window-title" id="window-title">
+        <i class="fa-solid fa-fire-flame-curved"></i>
+        <span>Firemark</span>
+      </div>
+    </div>
+    <div class="window-controls">
+      <button id="min-btn" title="Minimize" aria-label="Minimize"><i class="fa-solid fa-window-minimize"></i></button>
+      <button id="max-btn" title="Maximize" aria-label="Maximize"><i id="max-icon" class="fa-regular fa-window-maximize"></i></button>
+      <button id="close-btn" title="Close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+
+  <div id="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2><i class="fa-solid fa-sliders"></i> Controls</h2>
+      </div>
+      <div class="sidebar-content">
+        <!-- Text Watermark -->
+        <div class="control-group">
+          <div class="group-header">
+            <h3>Text Watermark</h3>
+            <label class="toggle-switch"><input type="checkbox" id="text-enable"><span class="slider"></span></label>
+          </div>
+          <div class="group-body" id="text-controls">
+            <label for="text-content">Text</label>
+            <input type="text" id="text-content" value="© Your Brand">
+            <label for="text-font-size">Font Size</label>
+            <input type="number" id="text-font-size" value="48" min="8">
+            <label for="text-color">Color & Opacity</label>
+            <div class="color-opacity">
+              <input type="color" id="text-color" value="#FFFFFF">
+              <input type="range" id="text-opacity" min="0" max="1" step="0.05" value="0.5">
+            </div>
+            <label>Position</label>
+            <div class="position-grid" id="text-position">
+              <button data-position="top-left"></button>
+              <button data-position="top-center"></button>
+              <button data-position="top-right"></button>
+              <button data-position="center-left"></button>
+              <button data-position="center" class="active"></button>
+              <button data-position="center-right"></button>
+              <button data-position="bottom-left"></button>
+              <button data-position="bottom-center"></button>
+              <button data-position="bottom-right"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logo Watermark -->
+        <div class="control-group">
+            <div class="group-header">
+                <h3>Logo Watermark</h3>
+                <label class="toggle-switch"><input type="checkbox" id="logo-enable"><span class="slider"></span></label>
+            </div>
+            <div class="group-body" id="logo-controls">
+                <button id="logo-select-btn" class="button-secondary">Select Logo Image</button>
+                <div id="logo-preview-container" class="hidden">
+                    <img id="logo-preview" src="#" alt="Logo Preview">
+                    <span id="logo-filename"></span>
+                </div>
+                <label for="logo-size">Size (% of image width)</label>
+                <input type="range" id="logo-size" min="5" max="50" value="15">
+                <label for="logo-opacity">Opacity</label>
+                <input type="range" id="logo-opacity" min="0" max="1" step="0.05" value="0.7">
+                <label>Position</label>
+                <div class="position-grid" id="logo-position">
+                    <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
+                    <button data-position="center-left"></button><button data-position="center"></button><button data-position="center-right"></button>
+                    <button data-position="bottom-left" class="active"></button><button data-position="bottom-center"></button><button data-position="bottom-right"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tiled Watermark -->
+        <div class="control-group">
+            <div class="group-header">
+                <h3>Tiled Watermark</h3>
+                <label class="toggle-switch"><input type="checkbox" id="tile-enable"><span class="slider"></span></label>
+            </div>
+            <div class="group-body" id="tile-controls">
+                <label for="tile-text-content">Text</label>
+                <input type="text" id="tile-text-content" value="Protected">
+                <label for="tile-font-size">Font Size</label>
+                <input type="number" id="tile-font-size" value="32" min="8">
+                <label for="tile-opacity">Opacity</label>
+                <input type="range" id="tile-opacity" min="0" max="1" step="0.05" value="0.15">
+                <label for="tile-rotation">Rotation (degrees)</label>
+                <input type="range" id="tile-rotation" min="-90" max="90" value="-30">
+            </div>
+        </div>
+        
+        <!-- Output Settings -->
+        <div class="control-group">
+          <div class="group-header">
+            <h3><i class="fa-solid fa-download"></i> Output Settings</h3>
+          </div>
+          <div class="group-body">
+            <button id="output-dir-btn" class="button-secondary">Select Output Folder</button>
+            <p id="output-dir-path">No folder selected</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div id="dropzone">
+        <div class="dropzone-content">
+          <i class="fa-solid fa-images"></i>
+          <p>Drag & Drop Images Here</p>
+          <span>or</span>
+          <button id="add-images-btn" class="button-primary">Browse Files</button>
+        </div>
+      </div>
+      <div id="image-grid" class="hidden"></div>
+      <div id="image-grid-actions" class="hidden">
+        <button id="clear-images-btn" class="button-danger">Clear All</button>
+        <button id="start-btn" class="button-start" disabled>
+          <span class="btn-text">Start Processing</span>
+          <i class="fa-solid fa-circle-notch fa-spin btn-spinner hidden"></i>
+        </button>
+      </div>
+      <div id="progress-container" class="hidden">
+        <p id="progress-text"></p>
+        <div class="progress-bar">
+            <div id="progress-bar-inner"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
