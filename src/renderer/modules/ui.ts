@@ -136,26 +136,34 @@ export function setupCollapsibleGroups() {
     document.querySelectorAll('.collapsible').forEach(header => {
         const groupBody = header.nextElementSibling as HTMLElement;
 
-        const setMaxHeight = () => {
+        const updateMaxHeight = () => {
             if (header.classList.contains('active')) {
+                // When active, set max-height to its content's scroll height.
                 groupBody.style.maxHeight = groupBody.scrollHeight + 'px';
             } else {
-                groupBody.style.maxHeight = '0px';
+                // When inactive, collapse it.
+                groupBody.style.maxHeight = '0';
             }
         };
 
-        // Set initial state. For active panels, wait for the next frame to ensure
-        // scrollHeight is calculated correctly after the initial render.
+        // Set initial state on page load.
         if (header.classList.contains('active')) {
-            requestAnimationFrame(setMaxHeight);
+            // For initially active panels, wait a frame to get the correct scrollHeight after render.
+            requestAnimationFrame(updateMaxHeight);
         } else {
-            groupBody.style.maxHeight = '0px';
+            groupBody.style.maxHeight = '0';
         }
         
         header.addEventListener('click', () => {
             header.classList.toggle('active');
-            setMaxHeight();
+            updateMaxHeight();
         });
+        
+        // Use a ResizeObserver to automatically update the max-height when the content
+        // inside the group body changes size (e.g., when a sub-option is enabled).
+        // This also elegantly solves the timing issue on initial expansion.
+        const resizeObserver = new ResizeObserver(updateMaxHeight);
+        resizeObserver.observe(groupBody);
     });
 }
 

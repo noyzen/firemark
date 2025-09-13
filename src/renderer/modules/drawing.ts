@@ -73,7 +73,9 @@ export function drawTextWatermark(ctx: CanvasRenderingContext2D, width: number, 
     const lineHeight = s.fontSize * s.lineHeight;
     const metrics = lines.map(line => ctx.measureText(line));
     const maxTextWidth = Math.max(...metrics.map(m => m.width));
-    const totalTextHeight = lines.length * lineHeight;
+    // FIX: Correctly calculate total height for multi-line text to match preview logic.
+    // This ensures consistent positioning between the live preview and the final output.
+    const totalTextHeight = lines.length > 0 ? (lines.length - 1) * lineHeight + s.fontSize : 0;
     
     let { x, y } = getPositionCoords(s.position, width, height, maxTextWidth, totalTextHeight, s.padding);
 
