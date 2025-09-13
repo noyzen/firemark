@@ -461,21 +461,28 @@ function setupCollapsibleGroups() {
         header.addEventListener('click', () => {
             header.classList.toggle('active');
             const body = header.nextElementSibling as HTMLElement;
-            if(body) {
-                if (body.style.maxHeight) {
-                    body.style.maxHeight = '';
+            if (body) {
+                if (body.classList.contains('open')) {
+                    // It's open, so close it.
+                    body.style.maxHeight = null; // Revert to CSS max-height: 0
                     body.classList.remove('open');
                 } else {
-                    body.style.maxHeight = body.scrollHeight + "px";
+                    // It's closed, so open it.
                     body.classList.add('open');
+                    body.style.maxHeight = body.scrollHeight + "px";
                 }
             }
         });
 
-        if(header.classList.contains('active')){
+        // Initialize groups that should be open by default
+        if (header.classList.contains('active')) {
             const body = header.nextElementSibling as HTMLElement;
             if (body) {
-                 setTimeout(() => { body.style.maxHeight = body.scrollHeight + "px"; body.classList.add('open') }, 100);
+                // Use a short timeout to ensure correct scrollHeight calculation after initial render
+                setTimeout(() => {
+                    body.classList.add('open');
+                    body.style.maxHeight = body.scrollHeight + "px";
+                }, 100);
             }
         }
     });
