@@ -461,6 +461,15 @@
         </div>
         <div id="grid-header" class="hidden">
             <h3 id="grid-title">Image List</h3>
+            <div id="processing-status" class="hidden">
+                <div id="progress-container" class="hidden">
+                    <p id="progress-text"></p>
+                    <div class="progress-bar">
+                        <div id="progress-bar-inner"></div>
+                    </div>
+                </div>
+                <div id="completion-container" class="hidden"></div>
+            </div>
             <div class="header-actions">
                 <button id="clear-images-btn" class="button-danger">Clear All</button>
                 <button id="start-btn" class="button-start" disabled>
@@ -470,12 +479,6 @@
             </div>
         </div>
         <div id="image-grid" class="hidden"></div>
-        <div id="progress-container" class="hidden">
-          <p id="progress-text"></p>
-          <div class="progress-bar">
-              <div id="progress-bar-inner"></div>
-          </div>
-        </div>
       </div>
       
       <div id="preview-view" class="hidden">

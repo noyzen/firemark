@@ -3,6 +3,19 @@ import { renderImageGrid, updateStartButtonState, updateActiveLayerControls, ren
 import { applyWatermarksToImage } from './drawing';
 import { updateSettingsAndPreview } from './settings';
 
+function resetHeaderState() {
+    const headerActions = document.getElementById('header-actions')!;
+    const processingStatus = document.getElementById('processing-status')!;
+    const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
+
+    headerActions.classList.remove('hidden');
+    processingStatus.classList.add('hidden');
+    
+    startBtn.querySelector('.btn-text')!.textContent = 'Start Watermarking';
+    startBtn.querySelector('.btn-spinner')!.classList.add('hidden');
+    updateStartButtonState();
+}
+
 export async function handleDrop(e: DragEvent) {
     e.preventDefault(); e.stopPropagation(); (e.currentTarget as HTMLElement).classList.remove('dragover');
     if (!e.dataTransfer) return;
@@ -23,12 +36,12 @@ async function addImages(newImages: { name: string, path: string }[]) {
         }
     }
     renderImageGrid();
-    updateStartButtonState();
+    resetHeaderState();
 }
 export function handleClearImages() { 
     AppState.images = []; 
     renderImageGrid(); 
-    updateStartButtonState(); 
+    resetHeaderState();
 }
 
 function getImageDimensions(path: string): Promise<{ originalWidth: number, originalHeight: number }> {
@@ -74,35 +87,33 @@ export async function processImages() {
     }
 
     const startBtn = document.getElementById('start-btn') as HTMLButtonElement;
-    const btnText = startBtn.querySelector('.btn-text')!;
-    const btnSpinner = startBtn.querySelector('.btn-spinner')!;
+    const headerActions = document.getElementById('header-actions')!;
+    const processingStatus = document.getElementById('processing-status')!;
     const progressContainer = document.getElementById('progress-container')!;
+    const completionContainer = document.getElementById('completion-container')!;
+    const progressText = document.getElementById('progress-text')!;
+    const progressBarInner = document.getElementById('progress-bar-inner')!;
     
     startBtn.disabled = true;
-    btnText.textContent = 'Processing...';
-    btnSpinner.classList.remove('hidden');
+    headerActions.classList.add('hidden');
+    processingStatus.classList.remove('hidden');
     progressContainer.classList.remove('hidden');
-    progressContainer.innerHTML = `<p id="progress-text"></p><div class="progress-bar"><div id="progress-bar-inner"></div></div>`;
+    completionContainer.classList.add('hidden');
     
     const total = AppState.images.length;
     for (let i = 0; i < total; i++) {
         const image = AppState.images[i];
-        document.getElementById('progress-text')!.textContent = `Processing ${i + 1} of ${total}: ${image.name}`;
+        progressText.textContent = `Processing ${i + 1} of ${total}: ${image.name}`;
         
         let dataUrl = await applyWatermarksToImage(image);
         if (dataUrl) {
             await window.api.saveFile({ dataUrl, directory: AppState.outputDir!, originalName: image.name, format: AppState.settings.output.format });
         }
-        document.getElementById('progress-bar-inner')!.style.width = `${((i + 1) / total) * 100}%`;
+        progressBarInner.style.width = `${((i + 1) / total) * 100}%`;
     }
     
-    progressContainer.innerHTML = `Processing complete! <button id="open-folder-btn" class="button-secondary">Open Output Folder</button>`;
+    progressContainer.classList.add('hidden');
+    completionContainer.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--success);"></i><span>Processing complete!</span><button id="open-folder-btn" class="button-secondary">Open Output Folder</button>`;
+    completionContainer.classList.remove('hidden');
     document.getElementById('open-folder-btn')!.addEventListener('click', () => window.api.openFolder(AppState.outputDir!));
-
-    setTimeout(() => {
-        btnText.textContent = 'Start Watermarking';
-        btnSpinner.classList.add('hidden');
-        if(document.getElementById('progress-container')) { document.getElementById('progress-container')!.classList.add('hidden'); }
-        updateStartButtonState();
-    }, 5000);
 }
