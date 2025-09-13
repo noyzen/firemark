@@ -263,7 +263,7 @@ function renderAllLayerLists() {
 function renderLayerList(type: 'texts' | 'logos' | 'icons') {
     const listEl = document.getElementById(`${type.slice(0, -1)}-layers-list`)!;
     listEl.innerHTML = '';
-    AppState.settings[type].forEach(layer => {
+    AppState.settings[type]?.forEach(layer => {
         const item = document.createElement('div');
         item.className = 'layer-item';
         item.dataset.id = layer.id;
@@ -294,43 +294,46 @@ function renderLayerList(type: 'texts' | 'logos' | 'icons') {
 
 // --- Settings & Controls ---
 function updateSettings() {
-    if (!AppState.activeLayer) return;
+    if (AppState.activeLayer) {
+        const { type, id } = AppState.activeLayer;
+        const layer = AppState.settings[type]?.find(l => l.id === id);
+        if (layer) {
+            const getPosition = (containerId: string) => {
+                const activeBtn = document.querySelector(`#${containerId} button.active`) as HTMLElement;
+                if (!activeBtn) return { x: 0.5, y: 0.5 };
+                const pos = activeBtn.dataset.position!;
+                const map: { [key: string]: { x: number, y: number } } = {
+                    'top-left': { x: 0, y: 0 }, 'top-center': { x: 0.5, y: 0 }, 'top-right': { x: 1, y: 0 },
+                    'center-left': { x: 0, y: 0.5 }, 'center': { x: 0.5, y: 0.5 }, 'center-right': { x: 1, y: 0.5 },
+                    'bottom-left': { x: 0, y: 1 }, 'bottom-center': { x: 0.5, y: 1 }, 'bottom-right': { x: 1, y: 1 },
+                };
+                return map[pos];
+            };
+            const getValue = (elId: string, isInt = false, isFloat = false) => {
+                const el = document.getElementById(elId) as HTMLInputElement;
+                if (isInt) return parseInt(el.value, 10) || 0;
+                if (isFloat) return parseFloat(el.value) || 0;
+                return el.value;
+            };
+            const isChecked = (elId: string) => (document.getElementById(elId) as HTMLInputElement).checked;
+            const isActive = (elId: string) => document.getElementById(elId)!.classList.contains('active');
 
-    const { type, id } = AppState.activeLayer;
-    const layer = AppState.settings[type].find(l => l.id === id);
-    if (!layer) return;
-
-    const getPosition = (containerId: string) => {
-        const activeBtn = document.querySelector(`#${containerId} button.active`) as HTMLElement;
-        if (!activeBtn) return { x: 0.5, y: 0.5 };
-        const pos = activeBtn.dataset.position!;
-        const map: { [key: string]: { x: number, y: number } } = {
-            'top-left': { x: 0, y: 0 }, 'top-center': { x: 0.5, y: 0 }, 'top-right': { x: 1, y: 0 },
-            'center-left': { x: 0, y: 0.5 }, 'center': { x: 0.5, y: 0.5 }, 'center-right': { x: 1, y: 0.5 },
-            'bottom-left': { x: 0, y: 1 }, 'bottom-center': { x: 0.5, y: 1 }, 'bottom-right': { x: 1, y: 1 },
-        };
-        return map[pos];
-    };
-    const getValue = (elId: string, isInt = false, isFloat = false) => {
-        const el = document.getElementById(elId) as HTMLInputElement;
-        if (isInt) return parseInt(el.value, 10) || 0;
-        if (isFloat) return parseFloat(el.value) || 0;
-        return el.value;
-    };
-    const isChecked = (elId: string) => (document.getElementById(elId) as HTMLInputElement).checked;
-    const isActive = (elId: string) => document.getElementById(elId)!.classList.contains('active');
-
-    switch (type) {
-        case 'texts':
-            Object.assign(layer, { content: getValue('text-content'), fontFamily: getValue('text-font-family'), fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'), align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left', lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true), padding: getValue('text-padding', true), gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') }, stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) }, shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) }, position: getPosition('text-position') });
-            break;
-        case 'logos':
-            Object.assign(layer, { size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: getPosition('logo-position') });
-            break;
-        case 'icons':
-            Object.assign(layer, { size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: getPosition('icon-position') });
-            break;
+            switch (type) {
+                case 'texts':
+                    Object.assign(layer, { content: getValue('text-content'), fontFamily: getValue('text-font-family'), fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'), align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left', lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true), padding: getValue('text-padding', true), gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') }, stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) }, shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) }, position: getPosition('text-position') });
+                    break;
+                case 'logos':
+                    Object.assign(layer, { size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: getPosition('logo-position') });
+                    break;
+                case 'icons':
+                    Object.assign(layer, { size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: getPosition('icon-position') });
+                    break;
+            }
+        }
     }
+    
+    const getValue = (elId: string, isInt = false, isFloat = false) => { const el = document.getElementById(elId) as HTMLInputElement; if(!el) return null; if (isInt) return parseInt(el.value, 10) || 0; if (isFloat) return parseFloat(el.value) || 0; return el.value; };
+    const isChecked = (elId: string) => (document.getElementById(elId) as HTMLInputElement)?.checked;
     
     // Non-layer settings
     AppState.settings.tile = { enabled: isChecked('tile-enable'), useLogo: isChecked('tile-use-logo'), content: getValue('tile-text-content'), fontSize: getValue('tile-font-size', true), opacity: getValue('tile-opacity', false, true), rotation: getValue('tile-rotation', true), spacing: getValue('tile-spacing', true) };
@@ -348,7 +351,7 @@ function updateActiveLayerControls() {
     if (!AppState.activeLayer) return;
 
     const { type, id } = AppState.activeLayer;
-    const layer = AppState.settings[type].find(l => l.id === id);
+    const layer = AppState.settings[type]?.find(l => l.id === id);
     if (!layer) return;
 
     const setValue = (elId: string, value: any, type = 'value') => { if (value === undefined) return; const el = document.getElementById(elId) as any; if (el) el[type] = value; };
@@ -358,7 +361,7 @@ function updateActiveLayerControls() {
         document.querySelectorAll(`#${containerId} button`).forEach(b => b.classList.remove('active'));
         const yStr = pos.y < 0.25 ? 'top' : pos.y > 0.75 ? 'bottom' : 'center';
         const xStr = pos.x < 0.25 ? 'left' : pos.x > 0.75 ? 'right' : 'center';
-        const posStr = `${yStr}-${xStr}`;
+        const posStr = `${yStr}-${xStr === 'center' && yStr === 'center' ? 'center' : xStr}`;
         document.querySelector(`#${containerId} button[data-position="${posStr}"]`)?.classList.add('active');
     };
 
@@ -393,6 +396,11 @@ function applySettingsToUI(s: any) {
     if (!s) return;
     
     AppState.settings = s;
+    // Ensure layer arrays exist after loading, migrating from old format
+    if (!Array.isArray(AppState.settings.texts)) AppState.settings.texts = [];
+    if (!Array.isArray(AppState.settings.logos)) AppState.settings.logos = [];
+    if (!Array.isArray(AppState.settings.icons)) AppState.settings.icons = [];
+    
     AppState.activeLayer = null; // Deselect any active layer
     
     renderAllLayerLists();
@@ -452,8 +460,24 @@ function setupCollapsibleGroups() {
     document.querySelectorAll('.collapsible').forEach(header => {
         header.addEventListener('click', () => {
             header.classList.toggle('active');
-            (header.nextElementSibling as HTMLElement)?.classList.toggle('hidden');
+            const body = header.nextElementSibling as HTMLElement;
+            if(body) {
+                if (body.style.maxHeight) {
+                    body.style.maxHeight = '';
+                    body.classList.remove('open');
+                } else {
+                    body.style.maxHeight = body.scrollHeight + "px";
+                    body.classList.add('open');
+                }
+            }
         });
+
+        if(header.classList.contains('active')){
+            const body = header.nextElementSibling as HTMLElement;
+            if (body) {
+                 setTimeout(() => { body.style.maxHeight = body.scrollHeight + "px"; body.classList.add('open') }, 100);
+            }
+        }
     });
 }
 function toggleControlGroups() {
@@ -469,8 +493,6 @@ function toggleControlGroups() {
     resizeControls.classList.toggle('hidden', mode === 'none');
     (document.getElementById('resize-width') as HTMLElement).style.display = (mode === 'width' || mode === 'fit') ? 'block' : 'none';
     (document.getElementById('resize-height') as HTMLElement).style.display = (mode === 'height' || mode === 'fit') ? 'block' : 'none';
-
-    updateSettingsAndPreview();
 }
 function populatePickers() {
     const iconGrid = document.getElementById('icon-picker-grid')!; iconGrid.innerHTML = '';
@@ -537,7 +559,7 @@ function saveCurrentSettingsToLocalStorage() {
     if(Object.keys(AppState.settings).length > 0) {
         const settingsToSave = JSON.parse(JSON.stringify(AppState.settings));
         // Don't save HTML elements
-        settingsToSave.logos.forEach(l => delete l.element);
+        settingsToSave.logos?.forEach(l => delete l.element);
         localStorage.setItem(SETTINGS_KEY, JSON.stringify(settingsToSave));
     }
 }
@@ -574,7 +596,7 @@ function savePreset() {
     if (name && name.trim()) {
         const key = `${PRESETS_PREFIX}${name.trim()}`;
         const settingsToSave = JSON.parse(JSON.stringify(AppState.settings));
-        settingsToSave.logos.forEach(l => delete l.element);
+        settingsToSave.logos?.forEach(l => delete l.element);
         localStorage.setItem(key, JSON.stringify(settingsToSave));
         loadPresets();
         (document.getElementById('presets-select') as HTMLSelectElement).value = key;
@@ -692,9 +714,9 @@ async function applyWatermarksToImage(image: { path: string }) {
             if (AppState.settings.tile.enabled) drawTileWatermark(ctx, newWidth, newHeight);
             
             // Draw all layers
-            AppState.settings.texts.forEach(t => { if(t.enabled) drawSingleTextWatermark(ctx, newWidth, newHeight, t) });
-            AppState.settings.logos.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(ctx, newWidth, newHeight, l) });
-            AppState.settings.icons.forEach(i => { if(i.enabled) drawSingleIconWatermark(ctx, newWidth, newHeight, i) });
+            AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(ctx, newWidth, newHeight, t) });
+            AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(ctx, newWidth, newHeight, l) });
+            AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(ctx, newWidth, newHeight, i) });
             
             resolve(canvas.toDataURL(`image/${AppState.settings.output.format}`, AppState.settings.output.quality));
         };
@@ -789,9 +811,9 @@ function drawPreview() {
         if (AppState.settings.frame.enabled) drawFrameWatermark(previewCtx, img.width, img.height);
         if (AppState.settings.pattern.enabled) drawPatternWatermark(previewCtx, img.width, img.height);
         if (AppState.settings.tile.enabled) drawTileWatermark(previewCtx, img.width, img.height);
-        AppState.settings.texts.forEach(t => { if(t.enabled) drawSingleTextWatermark(previewCtx, img.width, img.height, t) });
-        AppState.settings.logos.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(previewCtx, img.width, img.height, l) });
-        AppState.settings.icons.forEach(i => { if(i.enabled) drawSingleIconWatermark(previewCtx, img.width, img.height, i) });
+        AppState.settings.texts?.forEach(t => { if(t.enabled) drawSingleTextWatermark(previewCtx, img.width, img.height, t) });
+        AppState.settings.logos?.forEach(l => { if(l.enabled && l.element) drawSingleLogoWatermark(previewCtx, img.width, img.height, l) });
+        AppState.settings.icons?.forEach(i => { if(i.enabled) drawSingleIconWatermark(previewCtx, img.width, img.height, i) });
     }
 }
 function getWatermarkBBox(type: 'texts' | 'logos' | 'icons', layer: any, imgWidth: number, imgHeight: number) {
@@ -815,6 +837,7 @@ function handlePreviewMouseDown(e: MouseEvent) {
     const layerTypes: ('texts' | 'logos' | 'icons')[] = ['texts', 'logos', 'icons'];
     
     for (const type of layerTypes) {
+        if(!AppState.settings[type]) continue;
         // Loop backwards to check top layers first
         for (let i = AppState.settings[type].length - 1; i >= 0; i--) {
             const layer = AppState.settings[type][i];
