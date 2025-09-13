@@ -6,7 +6,7 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "build:renderer": "esbuild src/renderer/main.tsx --bundle --outfile=src/renderer/dist/main.js --sourcemap --platform=browser",
+    "build:renderer": "esbuild src/renderer/index.tsx --bundle --outfile=src/renderer/dist/main.js --sourcemap --platform=browser",
     "electron:dev": "npm run build:renderer && electron .",
     "electron:build": "npm run build:renderer && electron-builder"
   },

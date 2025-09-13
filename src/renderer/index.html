@@ -51,95 +51,100 @@
         <!-- Text Watermark -->
         <div class="control-group">
           <button class="group-header collapsible active">
-            <h3><i class="fa-solid fa-font"></i> Text Watermark</h3>
+            <h3><i class="fa-solid fa-font"></i> Text Watermarks</h3>
             <div class="header-controls">
-              <label class="toggle-switch"><input type="checkbox" id="text-enable"><span class="slider"></span></label>
               <i class="fa-solid fa-chevron-down collapse-icon"></i>
             </div>
           </button>
           <div class="group-body">
-            <label for="text-content">Text</label>
-            <div class="input-with-button">
-                <textarea id="text-content" rows="2">© Your Brand</textarea>
-                <button id="emoji-picker-btn" class="button-icon" title="Add Emoji"><i class="fa-regular fa-face-smile"></i></button>
+            <div class="layer-manager">
+              <div class="layer-list" id="text-layers-list"></div>
+              <button id="add-text-btn" class="button-secondary add-layer-btn"><i class="fa-solid fa-plus"></i> Add Text</button>
             </div>
-            
-            <label for="text-font-family">Font</label>
-            <div class="custom-select">
-                <select id="text-font-family">
-                    <optgroup label="Sans-serif">
-                        <option selected>Arial</option><option>Verdana</option><option>Helvetica</option><option>Roboto</option><option>Inter</option><option>Calibri</option><option>Gill Sans</option><option>Futura</option><option>Tahoma</option><option>Trebuchet MS</option><option>Lato</option><option>Open Sans</option>
-                    </optgroup>
-                    <optgroup label="Serif">
-                        <option>Times New Roman</option><option>Georgia</option><option>Garamond</option><option>Baskerville</option><option>Palatino</option><option>Merriweather</option>
-                    </optgroup>
-                    <optgroup label="Monospace">
-                        <option>Courier New</option><option>Lucida Console</option><option>Monaco</option><option>Consolas</option><option>Source Code Pro</option>
-                    </optgroup>
-                     <optgroup label="Display & Script">
-                        <option>Impact</option><option>Brush Script MT</option><option>Lobster</option><option>Pacifico</option><option>Comic Sans MS</option>
-                    </optgroup>
-                </select>
-            </div>
-            <label>Font Size, Style & Alignment</label>
-            <div class="inline-controls">
-              <input type="number" id="text-font-size" value="48" min="8">
-              <div class="text-styles">
-                  <button id="text-bold" data-style="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
-                  <button id="text-italic" data-style="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
-                  <button id="text-align-left" data-align="left" class="active" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
-                  <button id="text-align-center" data-align="center" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
-                  <button id="text-align-right" data-align="right" title="Align Right"><i class="fa-solid fa-align-right"></i></button>
+            <div id="text-controls-wrapper" class="controls-wrapper disabled">
+              <label for="text-content">Text</label>
+              <div class="input-with-button">
+                  <textarea id="text-content" rows="2">© Your Brand</textarea>
+                  <button id="emoji-picker-btn" class="button-icon" title="Add Emoji"><i class="fa-regular fa-face-smile"></i></button>
               </div>
-            </div>
-            <label for="text-line-height">Line Height</label>
-            <div class="range-with-value">
-              <input type="range" id="text-line-height" min="0.8" max="3" step="0.1" value="1.2">
-              <span class="value-display" id="text-line-height-value">1.2</span>
-            </div>
-
-            <label for="text-color">Color & Opacity</label>
-            <div class="color-opacity">
-              <input type="color" id="text-color" value="#FFFFFF" title="Primary Color">
-              <input type="range" id="text-opacity" min="0" max="1" step="0.01" value="0.7">
-              <span class="value-display" id="text-opacity-value">70%</span>
-            </div>
-            <label class="group-header sub-header">
-                <span>Gradient</span><label class="toggle-switch"><input type="checkbox" id="text-gradient-enable"><span class="slider"></span></label>
-            </label>
-            <div id="text-gradient-controls" class="sub-group hidden">
-                <input type="color" id="text-gradient-color" value="#4a90e2" title="Gradient End Color">
-                <div class="custom-select">
-                    <select id="text-gradient-direction">
-                        <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
-                    </select>
+              
+              <label for="text-font-family">Font</label>
+              <div class="custom-select">
+                  <select id="text-font-family">
+                      <optgroup label="Sans-serif">
+                          <option selected>Arial</option><option>Verdana</option><option>Helvetica</option><option>Roboto</option><option>Inter</option><option>Calibri</option><option>Gill Sans</option><option>Futura</option><option>Tahoma</option><option>Trebuchet MS</option><option>Lato</option><option>Open Sans</option>
+                      </optgroup>
+                      <optgroup label="Serif">
+                          <option>Times New Roman</option><option>Georgia</option><option>Garamond</option><option>Baskerville</option><option>Palatino</option><option>Merriweather</option>
+                      </optgroup>
+                      <optgroup label="Monospace">
+                          <option>Courier New</option><option>Lucida Console</option><option>Monaco</option><option>Consolas</option><option>Source Code Pro</option>
+                      </optgroup>
+                       <optgroup label="Display & Script">
+                          <option>Impact</option><option>Brush Script MT</option><option>Lobster</option><option>Pacifico</option><option>Comic Sans MS</option>
+                      </optgroup>
+                  </select>
+              </div>
+              <label>Font Size, Style & Alignment</label>
+              <div class="inline-controls">
+                <input type="number" id="text-font-size" value="48" min="8">
+                <div class="text-styles">
+                    <button id="text-bold" data-style="bold" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                    <button id="text-italic" data-style="italic" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                    <button id="text-align-left" data-align="left" class="active" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
+                    <button id="text-align-center" data-align="center" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+                    <button id="text-align-right" data-align="right" title="Align Right"><i class="fa-solid fa-align-right"></i></button>
                 </div>
-            </div>
-            <label class="group-header sub-header">
-                <span>Stroke (Outline)</span><label class="toggle-switch"><input type="checkbox" id="text-stroke-enable"><span class="slider"></span></label>
-            </label>
-            <div id="text-stroke-controls" class="sub-group hidden">
-               <input type="color" id="text-stroke-color" value="#000000" title="Stroke Color">
-               <input type="range" id="text-stroke-width" min="1" max="10" value="2">
-               <span class="value-display" id="text-stroke-width-value">2px</span>
-            </div>
-            <label class="group-header sub-header">
-                <span>Drop Shadow</span><label class="toggle-switch"><input type="checkbox" id="text-shadow-enable"><span class="slider"></span></label>
-            </label>
-            <div id="text-shadow-controls" class="sub-group hidden">
-               <input type="color" id="text-shadow-color" value="#000000" title="Shadow Color">
-               <input type="range" id="text-shadow-blur" min="0" max="20" value="5">
-               <span class="value-display" id="text-shadow-blur-value">5px</span>
-            </div>
-            <label>Position & Padding</label>
-            <div class="position-grid" id="text-position">
-              <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
-              <button data-position="center-left"></button><button data-position="center" class="active"></button><button data-position="center-right"></button>
-              <button data-position="bottom-left"></button><button data-position="bottom-center"></button><button data-position="bottom-right"></button>
-            </div>
-             <div class="range-with-value">
-                <input type="range" id="text-padding" min="0" max="200" step="1" value="20">
-                <span class="value-display" id="text-padding-value">20px</span>
+              </div>
+              <label for="text-line-height">Line Height</label>
+              <div class="range-with-value">
+                <input type="range" id="text-line-height" min="0.8" max="3" step="0.1" value="1.2">
+                <span class="value-display" id="text-line-height-value">1.2</span>
+              </div>
+
+              <label for="text-color">Color & Opacity</label>
+              <div class="color-opacity">
+                <input type="color" id="text-color" value="#FFFFFF" title="Primary Color">
+                <input type="range" id="text-opacity" min="0" max="1" step="0.01" value="0.7">
+                <span class="value-display" id="text-opacity-value">70%</span>
+              </div>
+              <label class="group-header sub-header">
+                  <span>Gradient</span><label class="toggle-switch"><input type="checkbox" id="text-gradient-enable"><span class="slider"></span></label>
+              </label>
+              <div id="text-gradient-controls" class="sub-group hidden">
+                  <input type="color" id="text-gradient-color" value="#4a90e2" title="Gradient End Color">
+                  <div class="custom-select">
+                      <select id="text-gradient-direction">
+                          <option value="vertical">Vertical</option><option value="horizontal">Horizontal</option>
+                      </select>
+                  </div>
+              </div>
+              <label class="group-header sub-header">
+                  <span>Stroke (Outline)</span><label class="toggle-switch"><input type="checkbox" id="text-stroke-enable"><span class="slider"></span></label>
+              </label>
+              <div id="text-stroke-controls" class="sub-group hidden">
+                 <input type="color" id="text-stroke-color" value="#000000" title="Stroke Color">
+                 <input type="range" id="text-stroke-width" min="1" max="10" value="2">
+                 <span class="value-display" id="text-stroke-width-value">2px</span>
+              </div>
+              <label class="group-header sub-header">
+                  <span>Drop Shadow</span><label class="toggle-switch"><input type="checkbox" id="text-shadow-enable"><span class="slider"></span></label>
+              </label>
+              <div id="text-shadow-controls" class="sub-group hidden">
+                 <input type="color" id="text-shadow-color" value="#000000" title="Shadow Color">
+                 <input type="range" id="text-shadow-blur" min="0" max="20" value="5">
+                 <span class="value-display" id="text-shadow-blur-value">5px</span>
+              </div>
+              <label>Position & Padding</label>
+              <div class="position-grid" id="text-position">
+                <button data-position="top-left"></button><button data-position="top-center"></button><button data-position="top-right"></button>
+                <button data-position="center-left"></button><button data-position="center" class="active"></button><button data-position="center-right"></button>
+                <button data-position="bottom-left"></button><button data-position="bottom-center"></button><button data-position="bottom-right"></button>
+              </div>
+               <div class="range-with-value">
+                  <input type="range" id="text-padding" min="0" max="200" step="1" value="20">
+                  <span class="value-display" id="text-padding-value">20px</span>
+              </div>
             </div>
           </div>
         </div>
@@ -147,14 +152,17 @@
         <!-- Logo Watermark -->
         <div class="control-group">
             <button class="group-header collapsible">
-                <h3><i class="fa-regular fa-image"></i> Logo Watermark</h3>
+                <h3><i class="fa-regular fa-image"></i> Logo Watermarks</h3>
                 <div class="header-controls">
-                    <label class="toggle-switch"><input type="checkbox" id="logo-enable"><span class="slider"></span></label>
                     <i class="fa-solid fa-chevron-down collapse-icon"></i>
                 </div>
             </button>
             <div class="group-body">
-                <button id="logo-select-btn" class="button-secondary">Select Logo Image</button>
+              <div class="layer-manager">
+                <div class="layer-list" id="logo-layers-list"></div>
+                <button id="add-logo-btn" class="button-secondary add-layer-btn"><i class="fa-solid fa-plus"></i> Add Logo</button>
+              </div>
+              <div id="logo-controls-wrapper" class="controls-wrapper disabled">
                 <div id="logo-preview-container" class="hidden">
                     <img id="logo-preview" src="#" alt="Logo Preview">
                     <span id="logo-filename"></span>
@@ -179,19 +187,24 @@
                     <input type="range" id="logo-padding" min="0" max="200" step="1" value="20">
                     <span class="value-display" id="logo-padding-value">20px</span>
                 </div>
+              </div>
             </div>
         </div>
 
         <!-- Icon Watermark -->
         <div class="control-group">
             <button class="group-header collapsible">
-                <h3><i class="fa-solid fa-icons"></i> Icon Watermark</h3>
+                <h3><i class="fa-solid fa-icons"></i> Icon Watermarks</h3>
                 <div class="header-controls">
-                    <label class="toggle-switch"><input type="checkbox" id="icon-enable"><span class="slider"></span></label>
                     <i class="fa-solid fa-chevron-down collapse-icon"></i>
                 </div>
             </button>
             <div class="group-body">
+              <div class="layer-manager">
+                <div class="layer-list" id="icon-layers-list"></div>
+                <button id="add-icon-btn" class="button-secondary add-layer-btn"><i class="fa-solid fa-plus"></i> Add Icon</button>
+              </div>
+              <div id="icon-controls-wrapper" class="controls-wrapper disabled">
                 <div class="input-with-button">
                     <div id="icon-display" class="button-secondary"><i class="fa-solid fa-copyright"></i><span>fa-copyright</span></div>
                     <button id="icon-picker-btn" class="button-icon"><i class="fa-solid fa-arrow-pointer"></i></button>
@@ -217,6 +230,7 @@
                     <input type="range" id="icon-padding" min="0" max="200" step="1" value="20">
                     <span class="value-display" id="icon-padding-value">20px</span>
                 </div>
+              </div>
             </div>
         </div>
         
@@ -231,7 +245,7 @@
             </button>
             <div class="group-body">
                  <label class="group-header sub-header">
-                    <span>Use Logo for Tile</span>
+                    <span>Use Active Logo Layer for Tile</span>
                     <label class="toggle-switch"><input type="checkbox" id="tile-use-logo"><span class="slider"></span></label>
                 </label>
                 <div id="tile-text-options">
@@ -258,7 +272,7 @@
             </div>
         </div>
 
-        <!-- Pattern Watermark -->
+        <!-- Pattern Overlay -->
         <div class="control-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-layer-group"></i> Pattern Overlay</h3>
@@ -294,7 +308,7 @@
             </div>
         </div>
 
-        <!-- Frame Watermark -->
+        <!-- Frame -->
         <div class="control-group">
             <button class="group-header collapsible">
                 <h3><i class="fa-solid fa-border-all"></i> Frame</h3>

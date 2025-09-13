@@ -212,9 +212,6 @@
   width: calc(100vw - 40px);
   height: calc(100vh - 120px);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 #preview-canvas {
   cursor: grab;

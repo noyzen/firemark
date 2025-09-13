@@ -258,6 +258,7 @@ input[type=range]:hover::-webkit-slider-thumb {
   display: inline-block; 
   width: 40px; 
   height: 22px; 
+  flex-shrink: 0;
 }
 .toggle-switch input { 
   opacity: 0; 
@@ -316,6 +317,90 @@ input[type=range]:hover::-webkit-slider-thumb {
   background-color: var(--accent); 
   border-color: var(--accent); 
   box-shadow: 0 0 5px var(--accent); 
+}
+
+/* --- Layer Manager --- */
+.layer-manager {
+  margin-bottom: 16px;
+}
+.layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 150px;
+  overflow-y: auto;
+  padding: 4px;
+  margin-bottom: 8px;
+  background: var(--bg-darker);
+  border-radius: 4px;
+}
+.layer-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-mid);
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  flex-shrink: 0;
+}
+.layer-item:hover {
+  background-color: var(--bg-light);
+}
+.layer-item.editing {
+  border-color: var(--accent);
+  background-color: rgba(74, 144, 226, 0.15);
+}
+.layer-item-content {
+  flex-grow: 1;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.layer-item-logo-preview {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+.layer-item-icon-preview {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+.layer-item-actions {
+  display: flex;
+  align-items: center;
+}
+.layer-item-actions button {
+  background: transparent;
+  border: none;
+  color: var(--fg-mid);
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+}
+.layer-item-actions button:hover {
+  color: var(--fg-bright);
+}
+.layer-item-actions .delete-layer-btn:hover {
+  color: var(--danger);
+}
+.add-layer-btn {
+  width: 100%;
+}
+.controls-wrapper {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+  transition: opacity 0.3s;
+}
+.controls-wrapper.disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 /* --- Misc Controls --- */
