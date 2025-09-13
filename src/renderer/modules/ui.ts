@@ -296,6 +296,7 @@ export function toggleControlGroups() {
 }
 export async function populatePickers() {
     const iconGrid = document.getElementById('icon-picker-grid')!;
+    if (iconGrid.children.length > 0) return; // Already populated
     iconGrid.innerHTML = ''; // Clear existing icons first
 
     const faIcons: { class: string; unicode: string; name: string }[] = [];
