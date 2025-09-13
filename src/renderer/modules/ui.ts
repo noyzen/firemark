@@ -300,34 +300,53 @@ export async function populatePickers() {
         const response = await fetch('../../fonts/all.min.css');
         if (!response.ok) throw new Error(`Failed to load Font Awesome CSS: ${response.statusText}`);
         const cssText = await response.text();
-
-        const ruleRegex = /([^{}]+?)\s*\{\s*content:\s*"\\([a-fA-F0-9]+)"/g;
+        
+        // This regex finds CSS rules that define content for a pseudo-element.
+        // It's broad to capture various minification styles and quotes.
+        const ruleRegex = /([^{}]+?)\s*\{\s*content:\s*['"]\\([a-fA-F0-9]+)['"]/g;
         let match;
+        
         while ((match = ruleRegex.exec(cssText)) !== null) {
             const selectors = match[1];
             const unicode = String.fromCharCode(parseInt(match[2], 16));
 
-            if (!selectors.includes(':before')) continue;
+            // Only consider selectors with ::before or :before. This prevents matching unrelated `content` properties.
+            if (!selectors.includes('::before') && !selectors.includes(':before')) {
+                continue;
+            }
 
             const individualSelectors = selectors.split(',');
+
             for (const selector of individualSelectors) {
-                const trimmedSelector = selector.trim();
-                if (!trimmedSelector.startsWith('.fa-')) continue;
+                // Extract all `.fa-` classes from the selector string.
+                const classes = selector.match(/\.fa-([a-zA-Z0-9-]+)/g);
+                if (!classes) continue;
 
-                const nameMatches = trimmedSelector.match(/fa-([^:,\s]+)/g);
-                if (!nameMatches || nameMatches.length === 0) continue;
+                let name = '';
+                let style = 'solid'; // Default style
 
-                const name = nameMatches[nameMatches.length - 1].replace('fa-', '');
-                if (!name) continue;
-                
-                let style = 'solid';
-                if (trimmedSelector.includes('.fa-brands')) style = 'brands';
-                else if (trimmedSelector.includes('.fa-regular')) style = 'regular';
-                
-                const fullClassName = `fa-${style} fa-${name}`;
-                
-                if (!faIcons.some(i => i.name === name && i.class === fullClassName)) {
-                    faIcons.push({ class: fullClassName, unicode, name });
+                for (const cls of classes) {
+                    const cleanClass = cls.substring(1); // remove leading dot
+                    
+                    // Identify style classes and their aliases (e.g., .fab)
+                    if (['fa-brands', 'fab'].includes(cleanClass)) {
+                        style = 'brands';
+                    } else if (['fa-regular', 'far'].includes(cleanClass)) {
+                        style = 'regular';
+                    } else if (['fa-solid', 'fas'].includes(cleanClass)) {
+                        style = 'solid';
+                    } else {
+                        // Assume it's the icon name class if it's not a style class
+                        name = cleanClass.replace('fa-', '');
+                    }
+                }
+
+                if (name) {
+                    const fullClassName = `fa-${style} fa-${name}`;
+                    // Use a simple check to prevent duplicates.
+                    if (!faIcons.some(i => i.class === fullClassName)) {
+                        faIcons.push({ class: fullClassName, unicode, name });
+                    }
                 }
             }
         }
