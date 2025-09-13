@@ -1,8 +1,23 @@
 import { AppState, SETTINGS_KEY, PRESETS_PREFIX, settingsUpdateTimeout } from './state';
 import { drawPreview } from './preview';
 import { toggleControlGroups, setupRangeValueDisplays, renderAllLayerLists, updateActiveLayerControls, updateCollapsibleIndicators } from './ui';
+import { getWatermarkBBox } from './drawing';
+import { previewState } from './state';
 
 export function updateSettings() {
+    // Read layer enabled state directly from DOM first
+    ['texts', 'logos', 'icons'].forEach(type => {
+        AppState.settings[type as 'texts' | 'logos' | 'icons']?.forEach(layer => {
+            const item = document.querySelector(`.layer-item[data-id="${layer.id}"]`);
+            if (item) {
+                const checkbox = item.querySelector('input[type="checkbox"]') as HTMLInputElement;
+                if (checkbox) {
+                    layer.enabled = checkbox.checked;
+                }
+            }
+        });
+    });
+
     if (AppState.activeLayer) {
         const { type, id } = AppState.activeLayer;
         const layer = AppState.settings[type]?.find((l: { id: any; }) => l.id === id);
@@ -27,15 +42,33 @@ export function updateSettings() {
             const isChecked = (elId: string) => (document.getElementById(elId) as HTMLInputElement).checked;
             const isActive = (elId: string) => document.getElementById(elId)!.classList.contains('active');
 
+            const handleFreePlacementToggle = (newFreePlacement: boolean) => {
+                if (newFreePlacement && !layer.freePlacement && previewState.image) {
+                    const { width, height } = previewState.image;
+                    const originalFreePlacement = layer.freePlacement;
+                    layer.freePlacement = false;
+                    const bbox = getWatermarkBBox(type, layer, width, height);
+                    layer.freePlacement = originalFreePlacement;
+                    if (bbox) {
+                        layer.position.x = bbox.x / width;
+                        layer.position.y = bbox.y / height;
+                    }
+                }
+                layer.freePlacement = newFreePlacement;
+            };
+
             switch (type) {
                 case 'texts':
-                    Object.assign(layer, { content: getValue('text-content'), fontFamily: getValue('text-font-family'), fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'), align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left', lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true), padding: getValue('text-padding', true), gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') }, stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) }, shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) }, position: getPosition('text-position'), freePlacement: isChecked('text-free-placement') });
+                    handleFreePlacementToggle(isChecked('text-free-placement'));
+                    Object.assign(layer, { content: getValue('text-content'), fontFamily: getValue('text-font-family'), fontSize: getValue('text-font-size', true), bold: isActive('text-bold'), italic: isActive('text-italic'), align: (document.querySelector('#text-align-left.active, #text-align-center.active, #text-align-right.active') as HTMLElement)?.dataset.align || 'left', lineHeight: getValue('text-line-height', false, true), color: getValue('text-color'), opacity: getValue('text-opacity', false, true), padding: getValue('text-padding', true), gradient: { enabled: isChecked('text-gradient-enable'), color: getValue('text-gradient-color'), direction: getValue('text-gradient-direction') }, stroke: { enabled: isChecked('text-stroke-enable'), color: getValue('text-stroke-color'), width: getValue('text-stroke-width', true) }, shadow: { enabled: isChecked('text-shadow-enable'), color: getValue('text-shadow-color'), blur: getValue('text-shadow-blur', true) }, position: layer.freePlacement ? layer.position : getPosition('text-position') });
                     break;
                 case 'logos':
-                    Object.assign(layer, { size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: getPosition('logo-position'), freePlacement: isChecked('logo-free-placement') });
+                    handleFreePlacementToggle(isChecked('logo-free-placement'));
+                    Object.assign(layer, { size: getValue('logo-size', true), opacity: getValue('logo-opacity', false, true), padding: getValue('logo-padding', true), position: layer.freePlacement ? layer.position : getPosition('logo-position') });
                     break;
                 case 'icons':
-                    Object.assign(layer, { size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: getPosition('icon-position'), freePlacement: isChecked('icon-free-placement') });
+                    handleFreePlacementToggle(isChecked('icon-free-placement'));
+                    Object.assign(layer, { size: getValue('icon-size', true), color: getValue('icon-color'), opacity: getValue('icon-opacity', false, true), padding: getValue('icon-padding', true), position: layer.freePlacement ? layer.position : getPosition('icon-position') });
                     break;
             }
         }

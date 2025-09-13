@@ -2,6 +2,8 @@ import { AppState, faIcons, emojis } from './state';
 import { updateSettingsAndPreview, applyPreset, openSavePresetModal, openDeletePresetModal, deletePreset, savePreset } from './settings';
 import { handleSelectLogo } from './file-handling';
 import { openPreview, drawPreview } from './preview';
+import { getWatermarkBBox } from './drawing';
+import { previewState } from './state';
 
 const gridView = document.getElementById('grid-view')!;
 const previewView = document.getElementById('preview-view')!;
@@ -94,7 +96,6 @@ function renderLayerList(type: 'texts' | 'logos' | 'icons') {
             </div>
         `;
 
-        item.querySelector('.toggle-switch input')!.addEventListener('change', (e) => toggleLayer(type, layer.id, (e.target as HTMLInputElement).checked));
         item.querySelector('.delete-layer-btn')!.addEventListener('click', (e) => { e.stopPropagation(); deleteLayer(type, layer.id); });
         item.addEventListener('click', () => selectLayer(type, layer.id));
         
@@ -114,7 +115,6 @@ export function updateActiveLayerControls() {
     if (!layer) return;
 
     const setValue = (elId: string, value: any, type = 'value') => { if (value === undefined) return; const el = document.getElementById(elId) as any; if (el) el[type] = value; };
-    // Fix: The `setChecked` helper function was incorrectly passing the numeric layer `id` instead of the string `elId`.
     const setChecked = (elId: string, value: boolean) => setValue(elId, value, 'checked');
     const setActive = (elId: string, value: boolean) => document.getElementById(elId)?.classList.toggle('active', !!value);
     const setPosition = (containerId: string, pos: { x: number, y: number }) => {
@@ -135,7 +135,7 @@ export function updateActiveLayerControls() {
         if(s.gradient) { setChecked('text-gradient-enable', s.gradient.enabled); setValue('text-gradient-color', s.gradient.color); setValue('text-gradient-direction', s.gradient.direction); }
         if(s.stroke) { setChecked('text-stroke-enable', s.stroke.enabled); setValue('text-stroke-color', s.stroke.color); setValue('text-stroke-width', s.stroke.width); }
         if(s.shadow) { setChecked('text-shadow-enable', s.shadow.enabled); setValue('text-shadow-color', s.shadow.color); setValue('text-shadow-blur', s.shadow.blur); }
-        if(s.position) setPosition('text-position', s.position);
+        if(!s.freePlacement && s.position) setPosition('text-position', s.position);
         document.getElementById('text-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
         document.getElementById('text-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     } else if (type === 'logos') {
@@ -144,7 +144,7 @@ export function updateActiveLayerControls() {
         document.getElementById('logo-filename')!.textContent = s.name;
         (document.getElementById('logo-preview') as HTMLImageElement)!.src = s.path;
         document.getElementById('logo-preview-container')!.classList.remove('hidden');
-        if(s.position) setPosition('logo-position', s.position);
+        if(!s.freePlacement && s.position) setPosition('logo-position', s.position);
         document.getElementById('logo-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
         document.getElementById('logo-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     } else if (type === 'icons') {
@@ -152,7 +152,7 @@ export function updateActiveLayerControls() {
         const display = document.getElementById('icon-display')!;
         display.innerHTML = `<i class="${s.icon.class}"></i><span>${s.icon.name}</span>`;
         setValue('icon-size', s.size); setValue('icon-color', s.color); setValue('icon-opacity', s.opacity); setValue('icon-padding', s.padding); setChecked('icon-free-placement', s.freePlacement);
-        if(s.position) setPosition('icon-position', s.position);
+        if(!s.freePlacement && s.position) setPosition('icon-position', s.position);
         document.getElementById('icon-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
         document.getElementById('icon-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     }
@@ -323,13 +323,25 @@ export function updateCollapsibleIndicators() {
 }
 
 function recenterActiveLayer() {
-    if (!AppState.activeLayer) return;
+    if (!AppState.activeLayer || !previewState.image) return;
     const { type, id } = AppState.activeLayer;
     const layer = AppState.settings[type]?.find((l: { id: any; }) => l.id === id);
     if (layer && layer.freePlacement) {
-        // Set position to the center (top-left will be at center)
-        layer.position = { x: 0.5, y: 0.5 };
-        updateSettingsAndPreview();
+        const { width, height } = previewState.image;
+        // Temporarily set position to center to calculate the bbox width/height correctly
+        const tempPos = layer.position;
+        layer.position = {x: 0.5, y: 0.5};
+        const bbox = getWatermarkBBox(type, layer, width, height);
+        layer.position = tempPos; // Restore original position
+        
+        if (bbox) {
+            const centerX = (width - bbox.w) / 2;
+            const centerY = (height - bbox.h) / 2;
+            layer.position.x = centerX / width;
+            layer.position.y = centerY / height;
+            updateActiveLayerControls();
+            updateSettingsAndPreview();
+        }
     }
 }
 

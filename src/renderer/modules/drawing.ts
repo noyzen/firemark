@@ -13,9 +13,11 @@ export function getResizedDimensions(originalWidth: number, originalHeight: numb
 
 export function getPositionCoords(pos: { x: number, y: number }, w: number, h: number, elementWidth: number, elementHeight: number, padding = 20, freePlacement = false) {
     if (freePlacement) {
+        // In free placement, pos is the normalized TOP-LEFT coordinate.
         return { x: pos.x * w, y: pos.y * h };
     }
-    // Snapping logic
+    // In grid mode, pos is an anchor point (0, 0.5, or 1 for each axis).
+    // We calculate the top-left coordinate (x,y) to place the element according to the anchor.
     const x = pos.x * (w - elementWidth - padding * 2) + padding;
     const y = pos.y * (h - elementHeight - padding * 2) + padding;
     return { x, y };
@@ -163,7 +165,7 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
     pCanvas.height = size * 2;
     
     pCtx.fillStyle = s.color1;
-    pCtx.strokeStyle = s.color2;
+    pCtx.strokeStyle = s.color1;
     pCtx.lineWidth = Math.max(1, size / 10);
 
     switch(s.type) {
@@ -211,6 +213,40 @@ export function drawPatternWatermark(ctx: CanvasRenderingContext2D, width: numbe
             pCtx.strokeStyle = s.color1;
             pCtx.lineWidth = Math.max(1, size/8);
             pCtx.beginPath(); pCtx.moveTo(0, size/2); pCtx.lineTo(size/2, 0); pCtx.lineTo(size, size/2); pCtx.lineTo(size*1.5, 0); pCtx.lineTo(size*2, size/2); pCtx.stroke();
+            break;
+        case 'vlines':
+            pCanvas.width = size; pCanvas.height = size;
+            pCtx.lineWidth = Math.max(1, size / 5);
+            pCtx.beginPath(); pCtx.moveTo(size/2, 0); pCtx.lineTo(size/2, size); pCtx.stroke();
+            break;
+        case 'hlines':
+            pCanvas.width = size; pCanvas.height = size;
+            pCtx.lineWidth = Math.max(1, size / 5);
+            pCtx.beginPath(); pCtx.moveTo(0, size/2); pCtx.lineTo(size, size/2); pCtx.stroke();
+            break;
+        case 'bricks':
+            pCanvas.width = size * 2; pCanvas.height = size;
+            pCtx.lineWidth = Math.max(1, size/10);
+            pCtx.strokeRect(0.5, 0.5, size, size/2);
+            pCtx.strokeRect(size + 0.5, size/2 + 0.5, size, size/2);
+            pCtx.beginPath(); pCtx.moveTo(size, 0); pCtx.lineTo(size, size/2); pCtx.stroke();
+            pCtx.beginPath(); pCtx.moveTo(0, size/2); pCtx.lineTo(0, size); pCtx.stroke();
+            pCtx.beginPath(); pCtx.moveTo(2*size, size/2); pCtx.lineTo(2*size, size); pCtx.stroke();
+            break;
+        case 'triangles':
+            pCanvas.width = size; pCanvas.height = size;
+            pCtx.lineWidth = Math.max(1, size/10);
+            pCtx.beginPath(); pCtx.moveTo(0,0); pCtx.lineTo(size,0); pCtx.lineTo(size/2, size); pCtx.closePath(); pCtx.stroke();
+            pCtx.beginPath(); pCtx.moveTo(0,size); pCtx.lineTo(size,size); pCtx.lineTo(size/2, 0); pCtx.closePath(); pCtx.stroke();
+            break;
+        case 'waves':
+            pCanvas.width = size * 2; pCanvas.height = size;
+            pCtx.lineWidth = Math.max(1, size/8);
+            pCtx.beginPath();
+            pCtx.moveTo(0, size / 2);
+            pCtx.bezierCurveTo(size / 2, 0, size / 2, size, size, size / 2);
+            pCtx.bezierCurveTo(size * 1.5, 0, size * 1.5, size, size * 2, size / 2);
+            pCtx.stroke();
             break;
     }
 
