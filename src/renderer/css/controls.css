@@ -53,8 +53,8 @@
   display: grid;
   gap: 12px;
   grid-template-columns: 1fr;
-  transition: max-height 0.3s ease-out;
-  padding: 16px;
+  transition: max-height 0.3s ease-out, padding-top 0.3s ease-out, padding-bottom 0.3s ease-out;
+  padding: 0 16px;
   overflow: hidden;
   max-height: 0;
 }
