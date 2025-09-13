@@ -20,6 +20,16 @@ export function openPreview(index: number) {
     previewState.image.src = image.path;
 }
 
+function getMousePosOnCanvas(e: MouseEvent): { x: number, y: number } {
+    const rect = previewCanvas.getBoundingClientRect();
+    const mouseXInElement = e.clientX - rect.left;
+    const mouseYInElement = e.clientY - rect.top;
+    return {
+        x: mouseXInElement / previewState.zoom,
+        y: mouseYInElement / previewState.zoom
+    };
+}
+
 function changePreviewImage(offset: number) { 
     let newIndex = previewState.index + offset; 
     if (newIndex < 0) newIndex = AppState.images.length - 1; 
@@ -69,7 +79,7 @@ export function drawPreview() {
 }
 
 function handlePreviewMouseDown(e: MouseEvent) {
-    const mouse = { x: e.offsetX / previewState.zoom, y: e.offsetY / previewState.zoom };
+    const mouse = getMousePosOnCanvas(e);
     const layerTypes: ('texts' | 'logos' | 'icons')[] = ['texts', 'logos', 'icons'];
     
     for (const type of layerTypes) {
@@ -98,15 +108,24 @@ function handlePreviewMouseMove(e: MouseEvent) {
         const layer = AppState.settings[type].find((l: { id: any; }) => l.id === id);
         if (!layer) return;
 
+        const mouse = getMousePosOnCanvas(e);
+        const { width, height } = previewCanvas;
+
         if (layer.freePlacement) {
-            const mouse = { x: e.offsetX / previewState.zoom, y: e.offsetY / previewState.zoom };
-            const bbox = getWatermarkBBox(type, layer, previewCanvas.width, previewCanvas.height)!;
-            layer.position.x = (mouse.x - previewState.dragOffset.x) / (previewCanvas.width);
-            layer.position.y = (mouse.y - previewState.dragOffset.y) / (previewCanvas.height);
+            const bbox = getWatermarkBBox(type, layer, width, height)!;
+            if (!bbox) return;
+
+            const newX = mouse.x - previewState.dragOffset.x;
+            const newY = mouse.y - previewState.dragOffset.y;
+
+            const clampedX = Math.max(0, Math.min(newX, width - bbox.w));
+            const clampedY = Math.max(0, Math.min(newY, height - bbox.h));
+
+            layer.position.x = clampedX / width;
+            layer.position.y = clampedY / height;
         } else {
-             const { width, height } = previewCanvas;
-             const xPercent = e.offsetX / (width * previewState.zoom);
-             const yPercent = e.offsetY / (height * previewState.zoom);
+             const xPercent = mouse.x / width;
+             const yPercent = mouse.y / height;
              const snapPoints = [0, 0.5, 1];
              layer.position.x = snapPoints.reduce((prev, curr) => Math.abs(curr - xPercent) < Math.abs(prev - xPercent) ? curr : prev);
              layer.position.y = snapPoints.reduce((prev, curr) => Math.abs(curr - yPercent) < Math.abs(prev - yPercent) ? curr : prev);
