@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupRangeValueDisplays();
     setupCollapsibleGroups();
     loadPresets();
+    UIEvents.updatePresetButtons();
     toggleControlGroups();
     await populatePickers();
 });
@@ -167,13 +168,27 @@ function setupEventListeners() {
     // Fix: Use the correctly imported UIEvents object
     document.getElementById('icon-search-input')!.addEventListener('input', UIEvents.filterIcons);
     
-    document.getElementById('preset-save-btn')!.addEventListener('click', UIEvents.openSavePresetModal);
-    document.getElementById('preset-save-cancel-btn')!.addEventListener('click', () => document.getElementById('preset-save-modal')!.classList.add('hidden'));
-    document.getElementById('preset-save-confirm-btn')!.addEventListener('click', UIEvents.savePreset);
+    // Preset Listeners
+    document.getElementById('preset-add-btn')!.addEventListener('click', UIEvents.openSavePresetModal);
+    document.getElementById('preset-update-btn')!.addEventListener('click', UIEvents.updatePreset);
     document.getElementById('preset-delete-btn')!.addEventListener('click', UIEvents.openDeletePresetModal);
+    
+    document.getElementById('preset-save-cancel-btn')!.addEventListener('click', () => document.getElementById('preset-save-modal')!.classList.add('hidden'));
+    document.getElementById('preset-save-confirm-btn')!.addEventListener('click', () => {
+        UIEvents.savePreset();
+        UIEvents.updatePresetButtons();
+    });
+
     document.getElementById('preset-delete-cancel-btn')!.addEventListener('click', () => document.getElementById('preset-delete-modal')!.classList.add('hidden'));
-    document.getElementById('preset-delete-confirm-btn')!.addEventListener('click', UIEvents.deletePreset);
-    document.getElementById('presets-select')!.addEventListener('change', UIEvents.applyPreset);
+    document.getElementById('preset-delete-confirm-btn')!.addEventListener('click', () => {
+        UIEvents.deletePreset();
+        UIEvents.updatePresetButtons();
+    });
+
+    document.getElementById('presets-select')!.addEventListener('change', (e) => {
+        UIEvents.applyPreset(e);
+        UIEvents.updatePresetButtons();
+    });
     
     setupPreviewListeners();
 }

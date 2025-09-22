@@ -335,3 +335,16 @@
     border-color: transparent;
     font-weight: bold;
 }
+
+.button-icon:disabled {
+    background: var(--bg-mid);
+    color: var(--fg-dark);
+    cursor: not-allowed;
+    border-color: var(--border);
+}
+.button-icon.success-feedback {
+    background-color: var(--success) !important;
+    border-color: var(--success) !important;
+    color: white !important;
+    transition: all 0.2s ease-in-out;
+}

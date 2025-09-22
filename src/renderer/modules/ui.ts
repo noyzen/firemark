@@ -492,6 +492,38 @@ function recenterActiveLayer() {
     }
 }
 
+// New function to update the currently selected preset
+function updatePreset() {
+    const select = document.getElementById('presets-select') as HTMLSelectElement;
+    const key = select.value;
+    if (key) {
+        const settingsToSave = JSON.parse(JSON.stringify(AppState.settings));
+        // Don't save transient DOM elements
+        settingsToSave.logos?.forEach((l: { element: any; }) => delete l.element);
+        localStorage.setItem(key, JSON.stringify(settingsToSave));
+
+        // Provide visual feedback
+        const btn = document.getElementById('preset-update-btn')!;
+        const icon = btn.querySelector('i')!;
+        const originalIconClass = 'fa-solid fa-save';
+        icon.className = 'fa-solid fa-check';
+        btn.classList.add('success-feedback');
+        
+        setTimeout(() => {
+            icon.className = originalIconClass;
+            btn.classList.remove('success-feedback');
+        }, 1500);
+    }
+}
+
+// New function to manage enabled/disabled state of preset buttons
+function updatePresetButtons() {
+    const select = document.getElementById('presets-select') as HTMLSelectElement;
+    const hasSelection = !!select.value;
+    (document.getElementById('preset-update-btn') as HTMLButtonElement).disabled = !hasSelection;
+    (document.getElementById('preset-delete-btn') as HTMLButtonElement).disabled = !hasSelection;
+}
+
 export const UIEvents = {
     addLayer,
     applyPreset,
@@ -501,4 +533,6 @@ export const UIEvents = {
     deletePreset,
     filterIcons,
     recenterActiveLayer,
+    updatePreset,
+    updatePresetButtons,
 };
