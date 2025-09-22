@@ -383,10 +383,9 @@ input[type=range]:hover::-webkit-slider-thumb {
 .layer-item-content {
   flex: 1 1 0;
   font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0; /* CRITICAL FIX: Allows flex item to shrink and enables text-overflow. */
+  white-space: normal;
+  word-break: break-all;
+  min-width: 0;
 }
 .layer-item-logo-preview {
   width: 20px;
