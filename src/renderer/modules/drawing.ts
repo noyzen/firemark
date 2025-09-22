@@ -1,4 +1,3 @@
-
 import { AppState } from './state';
 
 export function getResizedDimensions(originalWidth: number, originalHeight: number, resizeSettings: any) {
@@ -141,14 +140,23 @@ export function drawSingleTextWatermark(ctx: CanvasRenderingContext2D, width: nu
     
     let { x, y } = getPositionCoords(s.position, width, height, maxTextWidth, totalTextHeight, s.padding, s.freePlacement);
 
+    ctx.save();
+    
+    const centerX = x + maxTextWidth / 2;
+    const centerY = y + totalTextHeight / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate((s.rotation || 0) * Math.PI / 180);
+    
     ctx.globalAlpha = s.opacity; ctx.textBaseline = 'top';
     if (s.shadow.enabled) { ctx.shadowColor = s.shadow.color; ctx.shadowBlur = s.shadow.blur; ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2; }
     
     lines.forEach((line, i) => {
-        let lineX = x;
-        if (s.align === 'center') { lineX = x + (maxTextWidth - metrics[i].width) / 2; }
-        else if (s.align === 'right') { lineX = x + (maxTextWidth - metrics[i].width); }
-        const lineY = y + (i * lineHeight);
+        let lineXOffset = 0;
+        if (s.align === 'center') { lineXOffset = (maxTextWidth - metrics[i].width) / 2; }
+        else if (s.align === 'right') { lineXOffset = maxTextWidth - metrics[i].width; }
+        
+        const lineX = -maxTextWidth / 2 + lineXOffset;
+        const lineY = -totalTextHeight / 2 + (i * lineHeight);
 
         if (s.gradient.enabled) {
             const gradient = s.gradient.direction === 'vertical' ? ctx.createLinearGradient(0, lineY, 0, lineY + s.fontSize) : ctx.createLinearGradient(lineX, 0, lineX + metrics[i].width, 0);
@@ -159,14 +167,25 @@ export function drawSingleTextWatermark(ctx: CanvasRenderingContext2D, width: nu
         if (s.stroke.enabled) { ctx.strokeStyle = s.stroke.color; ctx.lineWidth = s.stroke.width; ctx.strokeText(line, lineX, lineY); }
     });
     
-    ctx.globalAlpha = 1.0; ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+    ctx.restore();
 }
 
 export function drawSingleLogoWatermark(ctx: CanvasRenderingContext2D, width: number, height: number, s: any) {
     const logo = s.element;
     const logoWidth = width * (s.size / 100); const logoHeight = logo.height * (logoWidth / logo.width);
     const { x, y } = getPositionCoords(s.position, width, height, logoWidth, logoHeight, s.padding, s.freePlacement);
-    ctx.globalAlpha = s.opacity; ctx.drawImage(logo, x, y, logoWidth, logoHeight); ctx.globalAlpha = 1.0;
+    
+    ctx.save();
+    
+    const centerX = x + logoWidth / 2;
+    const centerY = y + logoHeight / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate((s.rotation || 0) * Math.PI / 180);
+
+    ctx.globalAlpha = s.opacity; 
+    ctx.drawImage(logo, -logoWidth / 2, -logoHeight / 2, logoWidth, logoHeight); 
+
+    ctx.restore();
 }
 
 export function drawSingleIconWatermark(ctx: CanvasRenderingContext2D, width: number, height: number, s: any) {
@@ -183,13 +202,24 @@ export function drawSingleIconWatermark(ctx: CanvasRenderingContext2D, width: nu
 
     ctx.font = `${fontWeight} ${s.size}px ${fontFamily}`;
     const metrics = ctx.measureText(s.icon.unicode);
+    const textWidth = metrics.width;
     const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-    const { x, y } = getPositionCoords(s.position, width, height, metrics.width, textHeight, s.padding, s.freePlacement);
+    const { x, y } = getPositionCoords(s.position, width, height, textWidth, textHeight, s.padding, s.freePlacement);
+
+    ctx.save();
+    
+    const centerX = x + textWidth / 2;
+    const centerY = y + textHeight / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate((s.rotation || 0) * Math.PI / 180);
+    
     ctx.globalAlpha = s.opacity;
     ctx.fillStyle = s.color;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(s.icon.unicode, x, y); ctx.globalAlpha = 1.0;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.icon.unicode, 0, 0); 
+    
+    ctx.restore();
 }
 
 export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, height: number) {

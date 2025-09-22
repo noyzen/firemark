@@ -65,7 +65,7 @@ export async function handleSelectLogo(layerId: number) {
         logoImg.onload = () => {
             const newLayer = {
                 id: layerId, enabled: true, name: file.name, path: file.path, element: logoImg,
-                size: 15, opacity: 0.7, padding: 20, position: { x: 0.5, y: 0.5 }
+                size: 15, opacity: 0.7, padding: 20, position: { x: 0.5, y: 0.5 }, rotation: 0
             };
             AppState.settings.logos.push(newLayer);
             AppState.activeLayer = { type: 'logos', id: newLayer.id };

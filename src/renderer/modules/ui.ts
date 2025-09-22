@@ -1,4 +1,3 @@
-
 import { AppState, emojis } from './state';
 import { updateSettingsAndPreview, applyPreset, openSavePresetModal, openDeletePresetModal, deletePreset, savePreset } from './settings';
 import { handleSelectLogo } from './file-handling';
@@ -27,14 +26,14 @@ export function addLayer(type: 'texts' | 'logos' | 'icons') {
     const newLayer: any = { id: Date.now(), enabled: true, freePlacement: false };
     switch (type) {
         case 'texts':
-            Object.assign(newLayer, { content: 'New Text', fontFamily: 'Arial', fontSize: 48, bold: false, italic: false, align: 'left', lineHeight: 1.2, color: '#FFFFFF', opacity: 0.7, padding: 20, gradient: { enabled: false, color: '#4a90e2', direction: 'vertical' }, stroke: { enabled: false, color: '#000000', width: 2 }, shadow: { enabled: false, color: '#000000', blur: 5 }, position: { x: 0.5, y: 0.5 } });
+            Object.assign(newLayer, { content: 'New Text', fontFamily: 'Arial', fontSize: 48, bold: false, italic: false, align: 'left', lineHeight: 1.2, color: '#FFFFFF', opacity: 0.7, padding: 20, rotation: 0, gradient: { enabled: false, color: '#4a90e2', direction: 'vertical' }, stroke: { enabled: false, color: '#000000', width: 2 }, shadow: { enabled: false, color: '#000000', blur: 5 }, position: { x: 0.5, y: 0.5 } });
             break;
         case 'logos':
             handleSelectLogo(newLayer.id);
             return;
         case 'icons':
             const defaultIcon = { class: 'fa-solid fa-copyright', unicode: '\u00a9', name: 'copyright' };
-            Object.assign(newLayer, { icon: defaultIcon, size: 64, color: '#FFFFFF', opacity: 0.7, padding: 20, position: { x: 0.5, y: 0.5 } });
+            Object.assign(newLayer, { icon: defaultIcon, size: 64, color: '#FFFFFF', opacity: 0.7, padding: 20, rotation: 0, position: { x: 0.5, y: 0.5 } });
             break;
     }
     AppState.settings[type].push(newLayer);
@@ -171,7 +170,7 @@ export function updateActiveLayerControls() {
 
     if (type === 'texts') {
         const s = layer;
-        setValue('text-content', s.content); setValue('text-font-family', s.fontFamily); setValue('text-font-size', s.fontSize); setActive('text-bold', s.bold); setActive('text-italic', s.italic); setValue('text-color', s.color); setValue('text-opacity', s.opacity); setValue('text-padding', s.padding); setValue('text-line-height', s.lineHeight); setChecked('text-free-placement', s.freePlacement);
+        setValue('text-content', s.content); setValue('text-font-family', s.fontFamily); setValue('text-font-size', s.fontSize); setActive('text-bold', s.bold); setActive('text-italic', s.italic); setValue('text-color', s.color); setValue('text-opacity', s.opacity); setValue('text-padding', s.padding); setValue('text-line-height', s.lineHeight); setChecked('text-free-placement', s.freePlacement); setValue('text-rotation', s.rotation);
         document.querySelectorAll('[data-align]').forEach(el => el.classList.remove('active')); setActive(`text-align-${s.align}`, true);
         if(s.gradient) { setChecked('text-gradient-enable', s.gradient.enabled); setValue('text-gradient-color', s.gradient.color); setValue('text-gradient-direction', s.gradient.direction); }
         if(s.stroke) { setChecked('text-stroke-enable', s.stroke.enabled); setValue('text-stroke-color', s.stroke.color); setValue('text-stroke-width', s.stroke.width); }
@@ -181,7 +180,7 @@ export function updateActiveLayerControls() {
         document.getElementById('text-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
     } else if (type === 'logos') {
         const s = layer;
-        setValue('logo-size', s.size); setValue('logo-opacity', s.opacity); setValue('logo-padding', s.padding); setChecked('logo-free-placement', s.freePlacement);
+        setValue('logo-size', s.size); setValue('logo-opacity', s.opacity); setValue('logo-padding', s.padding); setChecked('logo-free-placement', s.freePlacement); setValue('logo-rotation', s.rotation);
         document.getElementById('logo-filename')!.textContent = s.name;
         (document.getElementById('logo-preview') as HTMLImageElement)!.src = s.path;
         document.getElementById('logo-preview-container')!.classList.remove('hidden');
@@ -191,7 +190,7 @@ export function updateActiveLayerControls() {
     } else if (type === 'icons') {
         const s = layer;
         pickerBtnText.innerHTML = `<i class="${s.icon.class}" style="margin-right: 8px;"></i> ${s.icon.name}`;
-        setValue('icon-size', s.size); setValue('icon-color', s.color); setValue('icon-opacity', s.opacity); setValue('icon-padding', s.padding); setChecked('icon-free-placement', s.freePlacement);
+        setValue('icon-size', s.size); setValue('icon-color', s.color); setValue('icon-opacity', s.opacity); setValue('icon-padding', s.padding); setChecked('icon-free-placement', s.freePlacement); setValue('icon-rotation', s.rotation);
         if(!s.freePlacement && s.position) setPosition('icon-position', s.position);
         document.getElementById('icon-controls-wrapper')!.classList.toggle('free-placement-active', !!s.freePlacement);
         document.getElementById('icon-recenter-container')!.classList.toggle('hidden', !s.freePlacement);
@@ -241,9 +240,9 @@ export function handleGridClick(e: MouseEvent) {
 
 export function setupRangeValueDisplays() {
     const ranges = [
-        { input: 'text-opacity', out: 'text-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'text-padding', out: 'text-padding-value', unit: 'px' }, { input: 'text-line-height', out: 'text-line-height-value', unit: '', fixed: 1 }, { input: 'text-shadow-blur', out: 'text-shadow-blur-value', unit: 'px' }, { input: 'text-stroke-width', out: 'text-stroke-width-value', unit: 'px' },
-        { input: 'logo-size', out: 'logo-size-value', unit: '%' }, { input: 'logo-opacity', out: 'logo-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'logo-padding', out: 'logo-padding-value', unit: 'px' },
-        { input: 'icon-size', out: 'icon-size-value', unit: 'px' }, { input: 'icon-opacity', out: 'icon-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'icon-padding', out: 'icon-padding-value', unit: 'px' },
+        { input: 'text-opacity', out: 'text-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'text-padding', out: 'text-padding-value', unit: 'px' }, { input: 'text-line-height', out: 'text-line-height-value', unit: '', fixed: 1 }, { input: 'text-shadow-blur', out: 'text-shadow-blur-value', unit: 'px' }, { input: 'text-stroke-width', out: 'text-stroke-width-value', unit: 'px' }, { input: 'text-rotation', out: 'text-rotation-value', unit: '°' },
+        { input: 'logo-size', out: 'logo-size-value', unit: '%' }, { input: 'logo-opacity', out: 'logo-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'logo-padding', out: 'logo-padding-value', unit: 'px' }, { input: 'logo-rotation', out: 'logo-rotation-value', unit: '°' },
+        { input: 'icon-size', out: 'icon-size-value', unit: 'px' }, { input: 'icon-opacity', out: 'icon-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'icon-padding', out: 'icon-padding-value', unit: 'px' }, { input: 'icon-rotation', out: 'icon-rotation-value', unit: '°' },
         { input: 'tile-opacity', out: 'tile-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'tile-rotation', out: 'tile-rotation-value', unit: '°' }, { input: 'tile-spacing', out: 'tile-spacing-value', unit: 'px' },
         { input: 'pattern-opacity', out: 'pattern-opacity-value', unit: '%', scale: 100, fixed: 0 }, { input: 'pattern-size', out: 'pattern-size-value', unit: 'px' },
         { input: 'frame-width', out: 'frame-width-value', unit: 'px' }, { input: 'frame-padding', out: 'frame-padding-value', unit: 'px' },
