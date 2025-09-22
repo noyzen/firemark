@@ -1,3 +1,4 @@
+
 import { AppState } from './state';
 
 export function getResizedDimensions(originalWidth: number, originalHeight: number, resizeSettings: any) {
@@ -242,8 +243,12 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
     const rotatedHeight = width * sin + height * cos;
 
     // Loop and draw the item on the rotated grid
+    let rowIndex = 0;
     for (let y = -rotatedHeight / 2; y < rotatedHeight / 2; y += stepY) {
-        for (let x = -rotatedWidth / 2; x < rotatedWidth / 2; x += stepX) {
+        // Offset every second row for a staggered/brick layout
+        const xOffset = (rowIndex % 2 === 1) ? stepX / 2 : 0;
+        
+        for (let x = -rotatedWidth / 2 + xOffset; x < rotatedWidth / 2; x += stepX) {
             if (logoToUse) {
                 const logo = logoToUse.element;
                 const logoHeight = itemHeight;
@@ -253,6 +258,7 @@ export function drawTileWatermark(ctx: CanvasRenderingContext2D, width: number, 
                 ctx.fillText(s.content, x, y);
             }
         }
+        rowIndex++;
     }
 
     ctx.restore();
