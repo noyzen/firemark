@@ -372,6 +372,7 @@ input[type=range]:hover::-webkit-slider-thumb {
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
   flex-shrink: 0;
+  overflow: hidden; /* Added to clip any overflowing children */
 }
 .layer-item:hover {
   background-color: var(--bg-light);
@@ -381,7 +382,7 @@ input[type=range]:hover::-webkit-slider-thumb {
   background-color: rgba(74, 144, 226, 0.15);
 }
 .layer-item-content {
-  flex-grow: 1;
+  flex: 1 1 0; /* Use flex shorthand for better shrink/grow behavior */
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
