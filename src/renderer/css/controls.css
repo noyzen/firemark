@@ -371,8 +371,7 @@ input[type=range]:hover::-webkit-slider-thumb {
   border: 1px solid var(--border);
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
-  flex-shrink: 0;
-  overflow: hidden; /* Added to clip any overflowing children */
+  overflow: hidden;
 }
 .layer-item:hover {
   background-color: var(--bg-light);
@@ -382,22 +381,24 @@ input[type=range]:hover::-webkit-slider-thumb {
   background-color: rgba(74, 144, 226, 0.15);
 }
 .layer-item-content {
-  flex: 1 1 0; /* Use flex shorthand for better shrink/grow behavior */
+  flex: 1 1 0;
   font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0; /* Allows the element to shrink and truncate its content */
+  min-width: 0; /* CRITICAL FIX: Allows flex item to shrink and enables text-overflow. */
 }
 .layer-item-logo-preview {
   width: 20px;
   height: 20px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 .layer-item-icon-preview {
   font-size: 16px;
   width: 20px;
   text-align: center;
+  flex-shrink: 0;
 }
 .layer-item-actions {
   display: flex;
@@ -473,11 +474,14 @@ input[type=range]:hover::-webkit-slider-thumb {
   background: var(--bg-darker); 
   padding: 4px; 
   border-radius: 4px;
+  min-width: 0; /* Fix for long filenames pushing out container */
 }
 #logo-preview { 
-  max-width: 32px; 
-  max-height: 32px; 
+  width: 32px;
+  height: 32px; 
   border-radius: 2px; 
+  flex-shrink: 0;
+  object-fit: contain;
 }
 #logo-filename { 
   font-size: 11px; 
@@ -485,5 +489,5 @@ input[type=range]:hover::-webkit-slider-thumb {
   overflow: hidden; 
   text-overflow: ellipsis; 
   white-space: nowrap; 
-  min-width: 0; /* Prevents flex item from overflowing its container */
+  min-width: 0;
 }

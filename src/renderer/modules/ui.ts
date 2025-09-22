@@ -72,35 +72,72 @@ function renderLayerList(type: 'texts' | 'logos' | 'icons') {
     AppState.settings[type]?.forEach((layer: any) => {
         const item = document.createElement('div');
         item.className = 'layer-item';
-        item.dataset.id = layer.id;
+        item.dataset.id = String(layer.id);
         if (AppState.activeLayer?.type === type && AppState.activeLayer?.id === layer.id) {
             item.classList.add('editing');
         }
 
-        let contentPreview = '';
-        if (type === 'texts') contentPreview = `<div class="layer-item-content">${layer.content}</div>`;
-        if (type === 'logos') contentPreview = `<img src="${layer.path}" class="layer-item-logo-preview"><div class="layer-item-content">${layer.name}</div>`;
-        if (type === 'icons') contentPreview = `<div class="layer-item-icon-preview"><i class="${layer.icon.class}"></i></div><div class="layer-item-content">${layer.icon.name}</div>`;
-        
-        item.innerHTML = `
-            <label class="toggle-switch"><input type="checkbox" ${layer.enabled ? 'checked' : ''}><span class="slider"></span></label>
-            ${contentPreview}
-            <div class="layer-item-actions">
-                <button class="delete-layer-btn" title="Delete Layer"><i class="fa-solid fa-trash"></i></button>
-            </div>
-        `;
+        // Toggle Switch
+        const toggleLabel = document.createElement('label');
+        toggleLabel.className = 'toggle-switch';
+        const toggleInput = document.createElement('input');
+        toggleInput.type = 'checkbox';
+        toggleInput.checked = layer.enabled;
+        const toggleSpan = document.createElement('span');
+        toggleSpan.className = 'slider';
+        toggleLabel.append(toggleInput, toggleSpan);
 
-        item.querySelector('.delete-layer-btn')!.addEventListener('click', (e) => { e.stopPropagation(); deleteLayer(type, layer.id); });
-        
-        // Let the global input/change handler manage the toggle state
+        item.appendChild(toggleLabel);
+
+        // Content Preview
+        if (type === 'logos') {
+            const img = document.createElement('img');
+            img.src = layer.path;
+            img.className = 'layer-item-logo-preview';
+            item.appendChild(img);
+        } else if (type === 'icons') {
+            const iconContainer = document.createElement('div');
+            iconContainer.className = 'layer-item-icon-preview';
+            const iconEl = document.createElement('i');
+            iconEl.className = layer.icon.class;
+            iconContainer.appendChild(iconEl);
+            item.appendChild(iconContainer);
+        }
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'layer-item-content';
+        if (type === 'texts') {
+            contentDiv.textContent = layer.content;
+            contentDiv.title = layer.content; // Tooltip for long text
+        } else if (type === 'logos') {
+            contentDiv.textContent = layer.name;
+            contentDiv.title = layer.name; // Tooltip for long filenames
+        } else if (type === 'icons') {
+            contentDiv.textContent = layer.icon.name;
+            contentDiv.title = layer.icon.name; // Tooltip for icon names
+        }
+        item.appendChild(contentDiv);
+
+        // Actions
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'layer-item-actions';
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-layer-btn';
+        deleteBtn.title = 'Delete Layer';
+        deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteLayer(type, layer.id); });
+        actionsDiv.appendChild(deleteBtn);
+        item.appendChild(actionsDiv);
+
         item.addEventListener('click', (e) => {
-            if((e.target as HTMLElement).closest('.toggle-switch')) return;
-            selectLayer(type, layer.id)
+            if ((e.target as HTMLElement).closest('.toggle-switch')) return;
+            selectLayer(type, layer.id);
         });
-        
+
         listEl.appendChild(item);
     });
 }
+
 
 export function updateActiveLayerControls() {
     document.getElementById('text-controls-wrapper')!.classList.toggle('disabled', AppState.activeLayer?.type !== 'texts');
