@@ -136,6 +136,7 @@ input[type="text"], input[type="number"], select, textarea {
 textarea { 
   resize: vertical; 
   min-height: 58px; 
+  overflow-wrap: break-word; /* Wrap long unbroken strings */
 }
 input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
   outline: none;
@@ -208,6 +209,7 @@ select optgroup {
 }
 .input-with-button input, .input-with-button .button-secondary, .input-with-button textarea { 
   flex-grow: 1; 
+  min-width: 0; /* Prevents flex items from overflowing their container */
 }
 #icon-display { 
   padding: 8px; 
@@ -481,4 +483,5 @@ input[type=range]:hover::-webkit-slider-thumb {
   overflow: hidden; 
   text-overflow: ellipsis; 
   white-space: nowrap; 
+  min-width: 0; /* Prevents flex item from overflowing its container */
 }
