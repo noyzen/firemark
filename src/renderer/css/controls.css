@@ -386,6 +386,7 @@ input[type=range]:hover::-webkit-slider-thumb {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0; /* Allows the element to shrink and truncate its content */
 }
 .layer-item-logo-preview {
   width: 20px;
